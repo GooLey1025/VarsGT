@@ -1,5 +1,4 @@
-# VarsGT
-<img src="VarsGT-logo.svg" alt="workflow" width="300"/>
+# <img src="VarsGT-logo.svg" alt="VarsGT-logo" width="200"/>
 
 VarsGT (Variants Genotyping) is a workflow designed for generating high-quality VCF files from second-generation sequencing (NGS) reads. By integrating allele-based genotyping strategies, it enables accurate detection and representation of SNPs, INDELs, and structural variants (SVs), thereby providing a comprehensive variant landscape for genomic selection.
 
