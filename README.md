@@ -32,7 +32,7 @@ By deafult, all software will be used from your environment variables (`$PATH`).
 #### [vg](https://github.com/vgteam/vg)
 Version v1.71.0 has been tested.
 ```sh
-wget https://github.com/vgteam/vg/releases/download/v1.71.0/vg
+wget -c https://github.com/vgteam/vg/releases/download/v1.71.0/vg
 chmod +x vg
 echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
 ```
@@ -47,7 +47,7 @@ conda install -c bioconda samtools bcftools
 
 For **Inbred line 705 rice accessions**
 ```sh
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf?
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf
 wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.markers.intervals
 wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.sites.vcf
 wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.markers.intervals
