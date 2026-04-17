@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_2" data-name="图层 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33.32 9.34">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: -.06em;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #3972b0;
+      }
+
+      .cls-3 {
+        font-family: Arial-BoldMT, Arial;
+        font-size: 6px;
+        font-weight: 700;
+      }
+
+      .cls-4 {
+        fill: none;
+        stroke: #3a73b3;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-5 {
+        fill: #3a73b3;
+      }
+
+      .cls-6 {
+        fill: #7baf47;
+      }
+
+      .cls-7 {
+        fill: #7bae47;
+      }
+    </style>
+  </defs>
+  <g id="_图层_1-2" data-name="图层 1">
+    <text class="cls-3" transform="translate(12.31 7.08)"><tspan class="cls-1" x="0" y="0">V</tspan><tspan class="cls-2" x="3.67" y="0">ars</tspan><tspan class="cls-7" x="12.68" y="0">GT</tspan></text>
+    <circle class="cls-5" cx="1.15" cy="1.15" r="1.15"/>
+    <circle class="cls-5" cx="5.31" cy="7.9" r="1.15"/>
+    <circle class="cls-6" cx="10.37" cy="1.15" r="1.15"/>
+    <line class="cls-4" x1="1.46" y1="1.78" x2="4.96" y2="7.22"/>
+    <g>
+      <path class="cls-5" d="M9.22,2.58c-.25.82-.68,1.5-1.16,2.14-.49.63-1.03,1.23-1.76,1.69.25-.82.68-1.5,1.16-2.14.5-.63,1.04-1.23,1.76-1.69Z"/>
+      <path class="cls-5" d="M9.58,2.11c-.25.16-.6.33-.87.38l.47.15.27.41c-.02-.28.05-.66.14-.94Z"/>
+    </g>
+  </g>
+</svg>
