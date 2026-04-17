@@ -18,9 +18,11 @@ Make the binary executable and move it to a directory in your PATH.
 
 ### Java Softwares
 ```sh
-wget -P softwares https://zenodo.org/records/19529002/files/picard.jar?download=1
-wget -P softwares https://zenodo.org/records/19529002/files/GenomeAnalysisTK3.7.jar?download=1
-wget -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar?download=1
+git clone https://github.com/GooLey1025/VarsGT.git
+cd VarsGT
+wget -c -P softwares https://zenodo.org/records/19529002/files/picard.jar
+wget -c -P softwares https://zenodo.org/records/19529002/files/GenomeAnalysisTK3.7.jar
+wget -c -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar
 ```
 
 ### Additional software you need to download separately
@@ -45,39 +47,39 @@ conda install -c bioconda samtools bcftools
 
 For **Inbred line 705 rice accessions**
 ```sh
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.markers.intervals?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.sites.vcf?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.markers.intervals?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.sites.vcf?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_0.03.full.all.impute.vcf.gz?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_graph_prefix.txt?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz?download=1
-wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl?download=1
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf?
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.markers.intervals
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.sites.vcf
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.markers.intervals
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.sites.vcf
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_0.03.full.all.impute.vcf.gz
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_graph_prefix.txt
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz
+wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl
 ```
 For **Hybrid line 1171 rice accessions**
 ```sh
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.delly.sv.sites.bcf?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.markers.intervals?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.sites.vcf?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.markers.intervals?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.sites.vcf?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_0.02.full.all.impute.vcf.gz?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_graph_prefix.txt?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz?download=1
-wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl?download=1
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.delly.sv.sites.bcf
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.markers.intervals
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.sites.vcf
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.markers.intervals
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.sites.vcf
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_0.02.full.all.impute.vcf.gz
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_graph_prefix.txt
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz
+wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl
 ```
 
 ## "Quick" Test
 This will read test data from `test_fq/` and output final relevant files in `test/`.
 ```sh
 # First download test_fq file
-wget -P test_fq https://zenodo.org/records/19626994/files/sample1.read1.fastq.gz?download=1
-wget -P test_fq https://zenodo.org/records/19626994/files/sample1.read2.fastq.gz?download=1
+wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read1.fastq.gz
+wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read2.fastq.gz
 # Demonstrating batch processing: VarsGT can handle all .fastq.gz files in a directory.
 cp test_fq/sample1.read1.fastq.gz test_fq/sample2.read1.fastq.gz
 cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
