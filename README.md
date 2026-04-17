@@ -1,4 +1,9 @@
 # VarsGT
+<img src="VarsGT-logo.svg" alt="workflow" width="300"/>
+
+VarsGT (Variants Genotyping) is a workflow designed for generating high-quality VCF files from second-generation sequencing (NGS) reads. By integrating allele-based genotyping strategies, it enables accurate detection and representation of SNPs, INDELs, and structural variants (SVs), thereby providing a comprehensive variant landscape for genomic selection.
+
+VarsGT is currently built upon marker panels derived from two rice populations, namely the inbred rice population (705 accessions) and the hybrid rice population (1,171 accessions).
 
 ## Dependencies
 ### [Nextflow](https://www.nextflow.io)
@@ -21,7 +26,7 @@ wget -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.j
 
 ### Additional software you need to download separately
 By deafult, all software will be used from your environment variables. You can edit the software path in `params.yaml`.
-#### [Java 8]()
+#### Java 8
 **Important**: You need to download a specific version of java 8 and set `gatk_java_path` in `params.yaml`, as GATK 3.7 requires Java 8.
 #### [vg](https://github.com/vgteam/vg)
 Version v1.71.0 has been tested.
@@ -30,7 +35,7 @@ wget https://github.com/vgteam/vg/releases/download/v1.71.0/vg
 chmod +x vg
 echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
 ```
-#### [delly](https://github.com/dellytools/delly)
+#### [delly](https://github.com/dellytools/delly) (v1.7.2 has been tested)
 #### [samtools](https://github.com/samtools/samtools),[bgzip](https://github.com/DataBiosphere/bgzip),[bcftools](https://github.com/samtools/bcftools),tabix
 Easy to install:
 ```sh
