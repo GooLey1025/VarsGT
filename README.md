@@ -1,0 +1,83 @@
+# VarsGT
+
+## Dependencies
+### [Nextflow](https://www.nextflow.io)
+Make sure Java 17 or later is installed on your computer by using the command:
+```sh
+java -version
+```
+Enter this command in your terminal:
+```sh
+curl -s https://get.nextflow.io | bash
+```
+Make the binary executable and move it to a directory in your PATH.
+
+### Java Softwares
+```sh
+wget -P softwares https://zenodo.org/records/19529002/files/picard.jar?download=1
+wget -P softwares https://zenodo.org/records/19529002/files/GenomeAnalysisTK3.7.jar?download=1
+wget -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar?download=1
+```
+
+### Additional software you need to download separately
+By deafult, all software will be used from your environment variables. You can edit the software path in `params.yaml`.
+#### [Java 8]()
+**Important**: You need to download a specific version of java 8 and set `gatk_java_path` in `params.yaml`, as GATK 3.7 requires Java 8.
+#### [vg](https://github.com/vgteam/vg)
+Version v1.71.0 has been tested.
+```sh
+wget https://github.com/vgteam/vg/releases/download/v1.71.0/vg
+chmod +x vg
+echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
+```
+#### [delly](https://github.com/dellytools/delly)
+#### [samtools](https://github.com/samtools/samtools),[bgzip](https://github.com/DataBiosphere/bgzip),[bcftools](https://github.com/samtools/bcftools),tabix
+Easy to install:
+```sh
+conda install -c bioconda samtools bcftools
+```
+
+### (Required) Index files for graph pangenome-based genotyping.
+
+For **Inbred line 705 rice accessions**
+```sh
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.markers.intervals?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.sites.vcf?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.markers.intervals?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.sites.vcf?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_0.03.full.all.impute.vcf.gz?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_graph_prefix.txt?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz?download=1
+wget -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl?download=1
+```
+For **Hybrid line 1171 rice accessions**
+```sh
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.delly.sv.sites.bcf?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.markers.intervals?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.sites.vcf?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.markers.intervals?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.sites.vcf?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_0.02.full.all.impute.vcf.gz?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_graph_prefix.txt?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz?download=1
+wget -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl?download=1
+```
+
+## "Quick" Test
+This will read test data from `test_fq/` and output final relevant files in `test/`.
+```sh
+# First download test_fq file
+wget -P test_fq https://zenodo.org/records/19626994/files/sample1.read1.fastq.gz?download=1
+wget -P test_fq https://zenodo.org/records/19626994/files/sample1.read2.fastq.gz?download=1
+# Demonstrating batch processing: VarsGT can handle all .fastq.gz files in a directory.
+cp test_fq/sample1.read1.fastq.gz test_fq/sample2.read1.fastq.gz
+cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
+# Quick Test
+nextflow run main.nf -params-file test.params.yaml
+```
+The test will take about 15 minutes to run.

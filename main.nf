@@ -34,7 +34,7 @@ params.prefix = f.text.trim()
 
 
 // Required software paths (JAR files)
-params.gatk_path = "./GenomeAnalysisTK3.7.jar"
+params.gatk_path = "./softwares/GenomeAnalysisTK3.7.jar"
 params.picard_path = null
 
 // Resource configuration (with defaults)
@@ -69,6 +69,8 @@ params.samtools = (params.samtools_path && params.samtools_path.toString().trim(
 params.tabix = (params.tabix_path && params.tabix_path.toString().trim()) ? file(params.tabix_path).toAbsolutePath().toString() : 'tabix'
 params.beagle = (params.beagle_path && params.beagle_path.toString().trim()) ? file(params.beagle_path).toAbsolutePath().toString() : null
 params.ref_impute_panel_vcf = (params.ref_impute_panel_vcf_path && params.ref_impute_panel_vcf_path.toString().trim()) ? file(params.ref_impute_panel_vcf_path).toAbsolutePath().toString() : null
+params.vg = (params.vg_path && params.vg_path.toString().trim()) ? file(params.vg_path).toAbsolutePath().toString() : 'vg'
+params.bgzip = (params.bgzip_path && params.bgzip_path.toString().trim()) ? file(params.bgzip_path).toAbsolutePath().toString() : 'bgzip'
 
 include { kmc_kmer; giraffe_mapping } from './modules/giraffe_map'
 include { bam_addreplacerg; bam_sort_by_name; bam_fixmate; bam_sort_by_pos; bam_markdup; bam_index } from './modules/bam_format'
