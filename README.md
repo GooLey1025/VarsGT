@@ -24,7 +24,7 @@ wget -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.j
 ```
 
 ### Additional software you need to download separately
-By deafult, all software will be used from your environment variables. You can edit the software path in `params.yaml`.
+By deafult, all software will be used from your environment variables (`$PATH`). You can edit the software path in `params.yaml`.
 #### Java 8
 **Important**: You need to download a specific version of java 8 and set `gatk_java_path` in `params.yaml`, as GATK 3.7 requires Java 8.
 #### [vg](https://github.com/vgteam/vg)
@@ -85,3 +85,53 @@ cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
 nextflow run main.nf -params-file test.params.yaml
 ```
 The test will take about 15 minutes to run.
+
+
+## Usage Case
+
+### 1. Select task type
+
+Choose the appropriate template configuration file based on your sample type (inbred line or hybrid line).  
+If you plan to use the **Crossing Design** module in the RiceGPlex web platform, you must select the hybrid line configuration.
+
+```bash
+cp 705rice.template.params.yaml my.params.yaml
+# or for hybrid lines:
+cp 1171rice.template.params.yaml my.params.yaml
+```
+### 2. Configure parameters
+Edit the configuration file:
+```sh
+vim my.params.yaml
+```
+Set the input FASTQ file pattern:
+```sh
+fq_dir_glob: "your_fq_dir_path/*.read{1,2}.fastq.gz"
+```
+Description:
+- matches the sample identifier
+- {1,2} specifies paired-end reads (read1 and read2)
+
+```txt
+Example:
+test_fq/sample1.read1.fastq.gz
+test_fq/sample1.read2.fastq.gz
+
+test_fq/sample2.read1.fastq.gz
+test_fq/sample2.read2.fastq.gz
+```
+
+The workflow will automatically detect all samples and their paired reads.
+### 3. Set key parameters
+```txt
+project: "705rice_task"
+out_dir: "705rice_task_out"
+
+# Specify Java 8 executable path (required for GATK 3.7 UnifiedGenotyper)
+gatk_java_path: "/path/to/java8/bin/java"
+```
+
+### 4. Run the workflow
+```sh
+nextflow run main.nf -params-file my.params.yaml
+```
