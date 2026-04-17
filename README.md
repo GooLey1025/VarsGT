@@ -133,5 +133,5 @@ gatk_java_path: "/path/to/java8/bin/java"
 
 ### 4. Run the workflow
 ```sh
-nextflow run main.nf -params-file my.params.yaml
+nextflow run main.nf -params-file my.params.yaml -resume
 ```
