@@ -71,6 +71,7 @@ params.beagle = (params.beagle_path && params.beagle_path.toString().trim()) ? f
 params.ref_impute_panel_vcf = (params.ref_impute_panel_vcf_path && params.ref_impute_panel_vcf_path.toString().trim()) ? file(params.ref_impute_panel_vcf_path).toAbsolutePath().toString() : null
 params.vg = (params.vg_path && params.vg_path.toString().trim()) ? file(params.vg_path).toAbsolutePath().toString() : 'vg'
 params.bgzip = (params.bgzip_path && params.bgzip_path.toString().trim()) ? file(params.bgzip_path).toAbsolutePath().toString() : 'bgzip'
+params.kmc = (params.kmc_path && params.kmc_path.toString().trim()) ? file(params.kmc_path).toAbsolutePath().toString() : 'kmc'
 
 include { kmc_kmer; giraffe_mapping } from './modules/giraffe_map'
 include { bam_addreplacerg; bam_sort_by_name; bam_fixmate; bam_sort_by_pos; bam_markdup; bam_index } from './modules/bam_format'

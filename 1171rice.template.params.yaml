@@ -47,6 +47,8 @@ beagle_path: "./softwares/beagle.27Feb25.75f.jar"
 vg_path: ""
 picard_path: "./softwares/picard.jar"  # Path to Picard JAR file
 bgzip_path: ""
+kmc_path: ""
+
 # Resource configuration for genotyping
 threads: 24
 gatk_memory: "100g"
