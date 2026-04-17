@@ -82,7 +82,7 @@ wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read1.fastq
 wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read2.fastq.gz
 # Demonstrating batch processing: VarsGT can handle all .fastq.gz files in a directory.
 cp test_fq/sample1.read1.fastq.gz test_fq/sample2.read1.fastq.gz
-cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
+cp test_fq/sample1.read2.fastq.gz test_fq/sample2.reads2.fastq.gz
 # Quick Test
 nextflow run main.nf -params-file test.params.yaml
 ```
