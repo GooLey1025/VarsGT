@@ -28,7 +28,7 @@ process bam_sort_by_name {
 
     script:
     """
-    ${prams.samtools} sort -n -@ ${task.cpus} -o ${sample_id}.qname.bam ${rg_bam}
+    ${params.samtools} sort -n -@ ${task.cpus} -o ${sample_id}.qname.bam ${rg_bam}
     """
 }
 
