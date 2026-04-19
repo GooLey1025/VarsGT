@@ -13,7 +13,7 @@ fq_dir_glob: "your_fq_dir_path/*.read{1,2}.fastq.gz"
 
 project: "1171rice_task"
 out_dir: "1171rice_task_out"
-gatk_java_path: "/home/gulei/projects/jre1.8.0_471/bin/java"  # Specify Java 8 executable path for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
+gatk_java_path: ""  # Specify Java 8 executable path for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
 
 
 # Giraffe mapping resource configuration

@@ -6,7 +6,7 @@ def checkJava8(java_cmd) {
     proc.waitFor()
     def output = proc.text
 
-    if (!output.contains('1.8')) {
+    if (!(output =~ /version "1\.8\./)) {
         error """
         [ERROR] GATK requires Java 8, but detected:
 
@@ -20,6 +20,51 @@ def checkJava8(java_cmd) {
         println output
     }
 }
+def findJava8() {
+
+    // find all java
+    def proc = ["bash", "-c", "which -a java 2>/dev/null | uniq"].execute()
+    proc.waitFor()
+    def java_list = proc.text.readLines()
+
+    if (!java_list || java_list.size() == 0) {
+        error "[ERROR] No Java executable found in PATH"
+    }
+
+    println "[INFO] Found Java candidates:"
+    java_list.each { println "  - ${it}" }
+
+    // check each version
+    for (j in java_list) {
+        def p = ["bash", "-c", "${j} -version 2>&1"].execute()
+        p.waitFor()
+        def out = p.text
+
+        if (out =~ /version "1\.8\./) {
+            println "[INFO] Java 8 detected: ${j}"
+            println out
+            return j
+        }
+    }
+
+    // if not found Java 8
+    error """
+    [ERROR] No Java 8 found in PATH.
+
+    Detected Java versions:
+    ${java_list.collect { j ->
+        def p = ["bash", "-c", "${j} -version 2>&1"].execute()
+        p.waitFor()
+        "${j} -> ${p.text.split('\\n')[0]}"
+    }.join('\n\t')}
+
+    Please install Java 8 and ensure it is available in PATH,
+    or explicitly set:
+    gatk_java_path = "/path/to/java8/bin/java"
+    in your params.yaml file.
+    """
+}
+
 params.fq_dir_glob = null
 params.gbz = null
 params.out_dir = "output_dir"
@@ -78,7 +123,12 @@ if (params.picard_path) {
 // Set tool executables - use specified path if provided, otherwise use tool name (from PATH)
 // Handle both null and empty string cases
 // GATK Java (Java 8) - for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
-params.gatk_java = (params.gatk_java_path && params.gatk_java_path.toString().trim()) ? file(params.gatk_java_path).toAbsolutePath().toString() : 'java'
+if (params.gatk_java_path && params.gatk_java_path.toString().trim()) {
+    params.gatk_java = file(params.gatk_java_path).toAbsolutePath().toString()
+    checkJava8(params.gatk_java)   // manually specified → strong check
+} else {
+    params.gatk_java = findJava8() // automatically find Java 8
+}
 // General Java - for Picard and other tools (can use newer Java versions)
 params.java = (params.java_path && params.java_path.toString().trim()) ? file(params.java_path).toAbsolutePath().toString() : 'java'
 params.delly = (params.delly_path && params.delly_path.toString().trim()) ? file(params.delly_path).toAbsolutePath().toString() : 'delly'
@@ -98,7 +148,6 @@ include { DELLY_SV_GENOTYPE; BCFTOOLS_MERGE_GENOTYPE } from './modules/sv_gt'
 include { CONCAT_VCF; BEAGLE_IMPUTATION; POP_SNP; POP_INDEL; POP_SV } from './modules/utils'
 
 workflow {
-    checkJava8(params.gatk_java)
 
     gbz_ch      = Channel.fromPath(params.gbz)
     hapl_ch     = Channel.fromPath(params.hapl)
