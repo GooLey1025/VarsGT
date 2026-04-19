@@ -16,6 +16,10 @@ giraffe_mapping_memory_per_task: "100G"
 giraffe_mapping_cpus_per_task: 24
 giraffe_mapping_parallel_number: 5
 
+kmc_max_parallel_number: 10
+kmc_cpus_per_task: 32
+kmc_memory_per_task: "50G"
+
 # ============================================================================
 # GATK-DELLY Genotyping Parameters
 # ============================================================================
