@@ -17,10 +17,13 @@ gatk_java_path: ""  # Specify Java 8 executable path for GATK UnifiedGenotyper o
 
 
 # Giraffe mapping resource configuration
-giraffe_mapping_memory_per_task: "100G"
+giraffe_mapping_memory_per_task: "50G"
 giraffe_mapping_cpus_per_task: 24
 giraffe_mapping_parallel_number: 5
 
+kmc_max_parallel_number: 10
+kmc_cpus_per_task: 32
+kmc_memory_per_task: "50G"
 
 # Reference and input files (required for genotyping)
 prefix_file: "1171rice_VarsGT_index/1171rice_graph_prefix.txt" # Used to remove the prefix from the graph pangenome.

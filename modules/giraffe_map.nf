@@ -1,4 +1,9 @@
+def kmc_mem = (params.kmc_memory_per_task =~ /(\d+)/)[0][1]
+
 process kmc_kmer {
+    cpus "${params.kmc_cpus_per_task}"
+    memory "${params.kmc_memory_per_task}"
+    maxForks "${params.kmc_max_parallel_number}"
     input:
     tuple val(sample_id), path(fq_1), path(fq_2)
     output:
@@ -10,7 +15,7 @@ process kmc_kmer {
     > fq.list
     echo "${fq_1}" >> fq.list
     echo "${fq_2}" >> fq.list
-    ${params.kmc} -k29 -m100 -sm -okff -t16 -hp @fq.list ${sample_id} \${TMPDIR}
+    ${params.kmc} -k29 -m${kmc_mem} -sm -okff -t${task.cpus} -hp @fq.list ${sample_id} \${TMPDIR}
     """
 }
 
