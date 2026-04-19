@@ -38,10 +38,11 @@ echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
 ```
 #### [delly](https://github.com/dellytools/delly) (v1.7.2 has been tested)
 #### [kmc](https://github.com/refresh-bio/KMC)
-#### [samtools](https://github.com/samtools/samtools),[bgzip](https://github.com/DataBiosphere/bgzip),[bcftools](https://github.com/samtools/bcftools),tabix
+#### [bcftools](https://github.com/samtools/bcftools)
+#### [samtools](https://github.com/samtools/samtools),[bgzip](https://github.com/DataBiosphere/bgzip),tabix
 Easy to install:
 ```sh
-conda install -c bioconda samtools bcftools
+conda install -c bioconda samtools
 ```
 
 ### (Required) Index files for graph pangenome-based genotyping.

@@ -1,7 +1,25 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
+def checkJava8(java_cmd) {
+    def proc = ["bash", "-c", "${java_cmd} -version 2>&1"].execute()
+    proc.waitFor()
+    def output = proc.text
 
+    if (!output.contains('1.8')) {
+        error """
+        [ERROR] GATK requires Java 8, but detected:
+
+        ${output}
+
+        Please set:
+        params.gatk_java_path = "/path/to/java8/bin/java"
+        """
+    } else {
+        println "[INFO] GATK Java version OK:"
+        println output
+    }
+}
 params.fq_dir_glob = null
 params.gbz = null
 params.out_dir = "output_dir"
@@ -80,6 +98,8 @@ include { DELLY_SV_GENOTYPE; BCFTOOLS_MERGE_GENOTYPE } from './modules/sv_gt'
 include { CONCAT_VCF; BEAGLE_IMPUTATION; POP_SNP; POP_INDEL; POP_SV } from './modules/utils'
 
 workflow {
+    checkJava8(params.gatk_java)
+
     gbz_ch      = Channel.fromPath(params.gbz)
     hapl_ch     = Channel.fromPath(params.hapl)
     reads_ch    = Channel.fromFilePairs(params.fq_dir_glob, size: 2, flat: true)
