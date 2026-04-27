@@ -49,31 +49,14 @@ conda install -c bioconda samtools
 
 For **Inbred line 705 rice accessions**
 ```sh
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.delly.sv.sites.bcf
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.markers.intervals
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.indel.sites.vcf
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.markers.intervals
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice.snp.sites.vcf
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_0.03.full.all.impute.vcf.gz
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/705rice_graph_prefix.txt
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz
-wget -c -P 705rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl
+wget --content-disposition https://ndownloader.figshare.com/files/63989128
+unzip 705rice_VarsGT_index.zip
+
 ```
 For **Hybrid line 1171 rice accessions**
 ```sh
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.delly.sv.sites.bcf
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.markers.intervals
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.indel.sites.vcf
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.markers.intervals
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice.snp.sites.vcf
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_0.02.full.all.impute.vcf.gz
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/1171rice_graph_prefix.txt
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.chrnum.sorted.fa
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip.ref_order.txt
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.gbz
-wget -c -P 1171rice_VarsGT_index https://zenodo.org/records/19626994/files/Nip_42_rice.hapl
+wget --content-disposition https://ndownloader.figshare.com/files/63989128
+unzip 1171rice_VarsGT_index.zip
 ```
 
 ## "Quick" Test
