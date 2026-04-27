@@ -28,7 +28,8 @@ wget -c -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75
 ### Additional software you need to download separately
 By deafult, all software will be used from your environment variables (`$PATH`). You can edit the software path in `params.yaml`.
 #### Java 8
-**Important**: You need to download a specific version of java 8 and set `gatk_java_path` in `params.yaml`, as GATK 3.7 requires Java 8.
+
+**Important**: You need to download a specific version of java 8 and make sure it in your `$PATH`, as GATK 3.7 requires Java 8. VarsGT will search java 8. You also can set `gatk_java_path` in `params.yaml`.
 #### [vg](https://github.com/vgteam/vg)
 Version v1.71.0 has been tested.
 ```sh

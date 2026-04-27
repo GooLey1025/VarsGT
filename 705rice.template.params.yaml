@@ -13,14 +13,17 @@ fq_dir_glob: "your_fq_dir_path/*.read{1,2}.fastq.gz"
 
 project: "705rice_task"
 out_dir: "705rice_task_out"
-gatk_java_path: "/home/gulei/projects/jre1.8.0_471/bin/java"  # Specify Java 8 executable path for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
+gatk_java_path: ""  # Specify Java 8 executable path for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
 
 
 # Giraffe mapping resource configuration
-giraffe_mapping_memory_per_task: "100G"
+giraffe_mapping_memory_per_task: "40G"
 giraffe_mapping_cpus_per_task: 24
 giraffe_mapping_parallel_number: 5
 
+kmc_max_parallel_number: 10
+kmc_cpus_per_task: 32
+kmc_memory_per_task: "50G"
 
 # Reference and input files (required for genotyping)
 prefix_file: "705rice_VarsGT_index/705rice_graph_prefix.txt" # Used to remove the prefix from the graph pangenome.
