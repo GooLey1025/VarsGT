@@ -20,9 +20,9 @@ Make the binary executable and move it to a directory in your PATH.
 ```sh
 git clone https://github.com/GooLey1025/VarsGT.git
 cd VarsGT
-wget -c -P softwares https://zenodo.org/records/19529002/files/picard.jar
-wget -c -P softwares https://zenodo.org/records/19529002/files/GenomeAnalysisTK3.7.jar
-wget -c -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar
+wget --content-disposition -P softwares/ https://ndownloader.figshare.com/files/64029172 # picard
+wget --content-disposition -P softwares/ https://ndownloader.figshare.com/files/64029175 # GATK3.7
+wget --content-disposition -P softwares/ https://ndownloader.figshare.com/files/64029178 # beagle
 ```
 
 ### Additional software you need to download separately
@@ -64,11 +64,11 @@ unzip 1171rice_VarsGT_index.zip
 This will read test data from `test_fq/` and output final relevant files in `test/`.
 ```sh
 # First download test_fq file
-wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read1.fastq.gz
-wget -c -P test_fq https://zenodo.org/records/19626994/files/sample1.read2.fastq.gz
+wget --content-disposition -P test_fq https://ndownloader.figshare.com//files/64029223
+wget --content-disposition -P test_fq https://ndownloader.figshare.com//files/64029220
 # Demonstrating batch processing: VarsGT can handle all .fastq.gz files in a directory.
-cp test_fq/sample1.read1.fastq.gz test_fq/sample2.read1.fastq.gz
-cp test_fq/sample1.read2.fastq.gz test_fq/sample2.reads2.fastq.gz
+cp test_fq/sample1.reads1.fastq.gz test_fq/sample2.reads1.fastq.gz
+cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
 # Quick Test
 nextflow run main.nf -params-file test.params.yaml
 ```
