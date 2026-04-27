@@ -1,4 +1,4 @@
-fq_dir_glob: "test_fq/*.read{1,2}.fastq.gz"
+fq_dir_glob: "test_fq/*.reads{1,2}.fastq.gz"
 # Glob pattern for paired-end FASTQ files.
 # '*' matches the sample identifier, and '{1,2}' specifies read pairs (read1 and read2).
 # Example:
