@@ -41,13 +41,9 @@ echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
 #### [kmc](https://github.com/refresh-bio/KMC)
 #### [bcftools](https://github.com/samtools/bcftools)
 #### [samtools](https://github.com/samtools/samtools),[bgzip](https://github.com/DataBiosphere/bgzip),tabix
-Easy to install:
-```sh
-conda install -c bioconda samtools
-```
+
 
 ### (Required) Index files for graph pangenome-based genotyping.
-
 For **Inbred line 705 rice accessions**
 ```sh
 wget --content-disposition https://ndownloader.figshare.com/files/63989128
@@ -80,7 +76,6 @@ The test will take about 15 minutes to run.
 ### 1. Select task type
 
 Choose the appropriate template configuration file based on your sample type (inbred line or hybrid line).  
-If you plan to use the **Crossing Design** module in the RiceGPlex web platform, you must select the hybrid line configuration.
 
 ```bash
 cp 705rice.template.params.yaml my.params.yaml

@@ -25,6 +25,10 @@ kmc_max_parallel_number: 10
 kmc_cpus_per_task: 32
 kmc_memory_per_task: "50G"
 
+bam_per_task_threads: 4
+bam_per_task_memory: "5 GB"
+bam_max_parallel_num: 10
+
 # Reference and input files (required for genotyping)
 prefix_file: "1171rice_VarsGT_index/1171rice_graph_prefix.txt" # Used to remove the prefix from the graph pangenome.
 gbz: "1171rice_VarsGT_index/Nip_42_rice.gbz" 

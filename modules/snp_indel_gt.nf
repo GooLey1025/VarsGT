@@ -27,7 +27,6 @@ process UNIFIED_GENOTYPER_SNP {
     path snp_site_vcf
     output:
     path "${params.project}.snp.raw.vcf.gz", emit: vcf
-    path "${params.project}.snp.raw.vcf.gz.tbi", emit: tbi
 
     script:
     def bams = bam_files.findAll {it.name.endsWith('.bam')}
@@ -45,8 +44,23 @@ process UNIFIED_GENOTYPER_SNP {
         -stand_call_conf 30 \\
         -nct ${params.threads} \\
         -o ${params.project}.snp.raw.vcf.gz
+    """
+}
 
-    ${params.tabix} -f -p vcf ${params.project}.snp.raw.vcf.gz
+process TABIX_SNP {
+    publishDir "${params.out_dir}/snp_indel_genotype", mode: 'copy'
+    cpus "${params.threads}"
+
+    input:
+    path snp_raw_vcf
+
+    output:
+    path "${snp_raw_vcf}", emit: vcf
+    path "${snp_raw_vcf}.tbi", emit: tbi
+
+    script:
+    """
+    ${params.tabix} -f -p vcf ${snp_raw_vcf}
     """
 }
 
@@ -105,7 +119,6 @@ process UNIFIED_GENOTYPER_INDEL {
     path indel_site_vcf
     output:
     path "${params.project}.indel.raw.vcf.gz", emit: vcf_gz
-    path "${params.project}.indel.raw.vcf.gz.tbi", emit: vcf_gz_index
 
     script:
     def bams = bam_files.findAll {it.name.endsWith('.bam')}
@@ -123,8 +136,23 @@ process UNIFIED_GENOTYPER_INDEL {
         -stand_call_conf 30 \\
         -nct ${params.threads} \\
         -o ${params.project}.indel.raw.vcf.gz
+    """
+}
 
-    ${params.tabix} -f -p vcf ${params.project}.indel.raw.vcf.gz
+process TABIX_INDEL {
+    publishDir "${params.out_dir}/snp_indel_genotype", mode: 'copy'
+    cpus "${params.threads}"
+
+    input:
+    path indel_raw_vcf
+
+    output:
+    path "${indel_raw_vcf}", emit: vcf_gz
+    path "${indel_raw_vcf}.tbi", emit: vcf_gz_index
+
+    script:
+    """
+    ${params.tabix} -f -p vcf ${indel_raw_vcf}
     """
 }
 

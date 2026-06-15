@@ -65,7 +65,7 @@ def findJava8() {
     """
 }
 
-params.fq_dir_glob = null
+params.fq_or_bam_dir_glob = null
 params.gbz = null
 params.out_dir = "output_dir"
 params.ref_paths = null
@@ -141,100 +141,208 @@ params.vg = (params.vg_path && params.vg_path.toString().trim()) ? file(params.v
 params.bgzip = (params.bgzip_path && params.bgzip_path.toString().trim()) ? file(params.bgzip_path).toAbsolutePath().toString() : 'bgzip'
 params.kmc = (params.kmc_path && params.kmc_path.toString().trim()) ? file(params.kmc_path).toAbsolutePath().toString() : 'kmc'
 
+params.run_snp = params.ref && params.picard && params.snp_site_vcf && params.snp_markers_intervals && params.snp_site_vcf.toString().trim()
+params.run_indel = params.ref && params.picard && params.indel_site_vcf && params.indel_markers_intervals && params.indel_site_vcf.toString().trim()
+params.run_sv = params.ref && params.sv_sites_vcf && params.sv_sites_vcf.toString().trim()
+
+params.run_any_genotyping = params.run_snp || params.run_indel || params.run_sv
+
 include { kmc_kmer; giraffe_mapping } from './modules/giraffe_map'
-include { bam_addreplacerg; bam_sort_by_name; bam_fixmate; bam_sort_by_pos; bam_markdup; bam_index } from './modules/bam_format'
-include { INDEX_REFERENCE; UNIFIED_GENOTYPER_SNP; UNIFIED_GENOTYPER_INDEL; GATK_SNP_FORMAT; GATK_INDEL_FORMAT } from './modules/snp_indel_gt'
+include { bam_addreplacerg; bam_sort_by_name; bam_fixmate; bam_sort_by_pos; bam_markdup; bam_index; bam_index_existing } from './modules/bam_format'
+include { INDEX_REFERENCE; UNIFIED_GENOTYPER_SNP; UNIFIED_GENOTYPER_INDEL; GATK_SNP_FORMAT; GATK_INDEL_FORMAT; TABIX_SNP; TABIX_INDEL } from './modules/snp_indel_gt'
 include { DELLY_SV_GENOTYPE; BCFTOOLS_MERGE_GENOTYPE } from './modules/sv_gt'
-include { CONCAT_VCF; BEAGLE_IMPUTATION; POP_SNP; POP_INDEL; POP_SV } from './modules/utils'
+include { CONCAT_SNP_INDEL; CONCAT_SNP_SV; CONCAT_INDEL_SV; CONCAT_SNP_INDEL_SV; BEAGLE_IMPUTATION; POP_SNP; POP_INDEL; POP_SV; EXTRACT_SAMPLES_ORDER } from './modules/utils'
 
 workflow {
 
     gbz_ch      = Channel.fromPath(params.gbz)
     hapl_ch     = Channel.fromPath(params.hapl)
-    reads_ch    = Channel.fromFilePairs(params.fq_dir_glob, size: 2, flat: true)
-                 // => tuple(sample_id, fq1, fq2)
     
-    // Generate kmer files for each sample
-    kmer_ch = kmc_kmer(reads_ch)  // => tuple(sample_id, kff_file)
+    // Detect input type: FASTQ or BAM
+    // Check if the glob pattern contains .bam extension
+    def input_glob = params.fq_or_bam_dir_glob.toString()
+    def is_bam_input = input_glob.endsWith('.bam') || input_glob.contains('*.bam')
     
-    // Combine reads with kmer files
-    reads_kmer_ch = reads_ch
-        .join(kmer_ch)  // => tuple(sample_id, fq1, fq2, kff_file)
-    
-    // ref_paths is optional
-    if (params.ref_paths) {
-        ref_path_ch = Channel.fromPath(params.ref_paths).first()
-        // Combine: reads_kmer + idx + ref_path
-        mapping_input_ch = reads_kmer_ch
-            .combine(gbz_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz)
-            .combine(hapl_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz, hapl)
-            .combine(ref_path_ch)   // => tuple(sample_id, fq1, fq2, kff, gbz, hapl, ref_path)
-            .map { sample_id, fq1, fq2, kff, gbz, hapl, ref_path ->
-                tuple(sample_id, fq1, fq2, gbz, hapl, kff, ref_path.toString())
+    if (is_bam_input) {
+        // BAM input mode: directly use BAM files, skip giraffe mapping and BAM processing steps
+        println "[INFO] BAM input mode detected. Skipping giraffe mapping and BAM processing."
+        
+        // Parse BAM files with sample IDs from filenames (size: -1 means single file per sample)
+        bam_input_files = Channel.fromFilePairs(params.fq_or_bam_dir_glob, size: 1)
+            .map { sample_id, bam -> tuple(sample_id, bam) }
+            // => tuple(sample_id, bam)
+        
+        // Branch BAM files based on whether index exists
+        def bam_branched = bam_input_files
+            .map { sample_id, bam ->
+                def bai_file = new File("${bam}.bai")
+                def has_index = bai_file.exists()
+                tuple(sample_id, bam, has_index, bai_file)
             }
+            .branch { sample_id, bam, has_index, bai_path ->
+                indexed: has_index
+                    return tuple(sample_id, bam, bai_path)
+                needs_indexing: !has_index
+                    return tuple(sample_id, bam)
+            }
+        
+        // Index BAM files that don't have index
+        indexed_by_samtools_ch = bam_branched.needs_indexing
+            .map { sample_id, bam -> tuple(sample_id, bam) }
+            | bam_index_existing
+        
+        // Merge indexed BAM channels and ensure consistent output format
+        indexed_bam_ch = bam_branched.indexed
+            .mix(indexed_by_samtools_ch)
+        
     } else {
-        // Combine: reads_kmer + idx (no ref_path)
-        mapping_input_ch = reads_kmer_ch
-            .combine(gbz_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz)
-            .combine(hapl_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz, hapl)
-            .map { sample_id, fq1, fq2, kff, gbz, hapl -> 
-                tuple(sample_id, fq1, fq2, gbz, hapl, kff, null)
-            }
+        // FASTQ input mode: original workflow
+        println "[INFO] FASTQ input mode detected. Running giraffe mapping pipeline."
+        
+        reads_ch    = Channel.fromFilePairs(params.fq_or_bam_dir_glob, size: 2, flat: true)
+                     // => tuple(sample_id, fq1, fq2)
+        
+        // Generate kmer files for each sample
+        kmer_ch = kmc_kmer(reads_ch)  // => tuple(sample_id, kff_file)
+        
+        // Combine reads with kmer files
+        reads_kmer_ch = reads_ch
+            .join(kmer_ch)  // => tuple(sample_id, fq1, fq2, kff_file)
+        
+        // ref_paths is optional
+        if (params.ref_paths) {
+            ref_path_ch = Channel.fromPath(params.ref_paths).first()
+            // Combine: reads_kmer + idx + ref_path
+            mapping_input_ch = reads_kmer_ch
+                .combine(gbz_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz)
+                .combine(hapl_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz, hapl)
+                .combine(ref_path_ch)   // => tuple(sample_id, fq1, fq2, kff, gbz, hapl, ref_path)
+                .map { sample_id, fq1, fq2, kff, gbz, hapl, ref_path ->
+                    tuple(sample_id, fq1, fq2, gbz, hapl, kff, ref_path.toString())
+                }
+        } else {
+            // Combine: reads_kmer + idx (no ref_path)
+            mapping_input_ch = reads_kmer_ch
+                .combine(gbz_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz)
+                .combine(hapl_ch)        // => tuple(sample_id, fq1, fq2, kff, gbz, hapl)
+                .map { sample_id, fq1, fq2, kff, gbz, hapl -> 
+                    tuple(sample_id, fq1, fq2, gbz, hapl, kff, null)
+                }
+        }
+
+        bam_ch = giraffe_mapping(mapping_input_ch)
+            .map { sample_id, bam -> 
+                tuple(sample_id, bam)
+            }  // => tuple(sample_id, bam)
+
+        rg_bam_ch = bam_addreplacerg(bam_ch)  // => tuple(sample_id, rg.bam)
+        qname_bam_ch = bam_sort_by_name(rg_bam_ch)  // => tuple(sample_id, qname.bam)
+        fixmate_bam_ch = bam_fixmate(qname_bam_ch)  // => tuple(sample_id, fixmate.bam)
+        pos_bam_ch = bam_sort_by_pos(fixmate_bam_ch, params.prefix)  // => tuple(sample_id, pos.bam)
+        markdup_bam_ch = bam_markdup(pos_bam_ch)  // => tuple(sample_id, markdup.bam)
+        indexed_bam_ch = bam_index(markdup_bam_ch)  // => tuple(sample_id, markdup.bam, markdup.bam.bai)
+        
+        println "[INFO] FASTQ input mode: Total samples = ${indexed_bam_ch.count()}"
     }
 
-    bam_ch = giraffe_mapping(mapping_input_ch)
-        .map { sample_id, bam -> 
-            tuple(sample_id, bam)
-        }  // => tuple(sample_id, bam)
-
-    rg_bam_ch = bam_addreplacerg(bam_ch)  // => tuple(sample_id, rg.bam)
-    qname_bam_ch = bam_sort_by_name(rg_bam_ch)  // => tuple(sample_id, qname.bam)
-    fixmate_bam_ch = bam_fixmate(qname_bam_ch)  // => tuple(sample_id, fixmate.bam)
-    pos_bam_ch = bam_sort_by_pos(fixmate_bam_ch, params.prefix)  // => tuple(sample_id, pos.bam)
-    markdup_bam_ch = bam_markdup(pos_bam_ch)  // => tuple(sample_id, markdup.bam)
-    indexed_bam_ch = bam_index(markdup_bam_ch)  // => tuple(sample_id, markdup.bam, markdup.bam.bai)
-
     // GATK-DELLY Genotyping workflow (only if parameters are provided)
-    if (params.ref && params.picard && params.snp_site_vcf && params.indel_site_vcf && params.sv_sites_vcf && params.snp_markers_intervals && params.indel_markers_intervals) {
+    if (params.run_any_genotyping) {
+        // Reference and Picard files (required for any genotyping)
+        ref = file(params.ref, checkIfExists: true)
+        picard = file(params.picard, checkIfExists: true)
+        
+        // Index reference genome (always needed for GATK)
+        index_ref_ch = INDEX_REFERENCE(ref, picard)
+        
         // Collect BAM files for GATK UnifiedGenotyper
         bam_list_ch = indexed_bam_ch.map { sample_id, bam, bai -> [ bam, bai ] }.collect()
         
         // Prepare BAM tuple channel for DELLY (sample_id, bam, bai)
         bam_tuples_ch = indexed_bam_ch.map { sample_id, bam, bai -> tuple(sample_id, bam, bai) }
-
-        // Index reference genome
-        ref = file(params.ref, checkIfExists: true)
-        picard = file(params.picard, checkIfExists: true)
-        snp_markers_intervals = file(params.snp_markers_intervals, checkIfExists: true)
-        indel_markers_intervals = file(params.indel_markers_intervals, checkIfExists: true)
-        snp_site_vcf = file(params.snp_site_vcf, checkIfExists: true)
-        indel_site_vcf = file(params.indel_site_vcf, checkIfExists: true)
-        sv_sites_vcf = file(params.sv_sites_vcf, checkIfExists: true)
-
-        index_ref_ch = INDEX_REFERENCE(ref, picard)
         
-        // SNP and INDEL genotyping
-        snp_vcf_ch = UNIFIED_GENOTYPER_SNP(ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict, snp_markers_intervals, snp_site_vcf)
-        indel_vcf_ch = UNIFIED_GENOTYPER_INDEL(ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict, indel_markers_intervals, indel_site_vcf)
-
-        snp_format_ch = GATK_SNP_FORMAT(snp_vcf_ch.vcf, snp_vcf_ch.tbi, snp_site_vcf)
-        indel_format_ch = GATK_INDEL_FORMAT(indel_vcf_ch.vcf_gz, indel_vcf_ch.vcf_gz_index, indel_site_vcf)
-
-        // SV genotyping
-        sv_gt_ch = DELLY_SV_GENOTYPE(ref, sv_sites_vcf, bam_tuples_ch)
-
-        bcf_list_ch = sv_gt_ch.map { sample_id, bcf, bcf_index -> bcf}.collect()
-        bcf_index_list_ch = sv_gt_ch.map { sample_id, bcf, bcf_index -> bcf_index}.collect()
+        // SNP genotyping (if snp_site_vcf and snp_markers_intervals are provided)
+        if (params.run_snp) {
+            snp_markers_intervals = file(params.snp_markers_intervals, checkIfExists: true)
+            snp_site_vcf = file(params.snp_site_vcf, checkIfExists: true)
+            snp_vcf_ch = UNIFIED_GENOTYPER_SNP(ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict, snp_markers_intervals, snp_site_vcf)
+            snp_indexed_ch = TABIX_SNP(snp_vcf_ch.vcf)
+            snp_format_ch = GATK_SNP_FORMAT(snp_indexed_ch.vcf, snp_indexed_ch.tbi, snp_site_vcf)
+        }
         
-        sv_merged_ch = BCFTOOLS_MERGE_GENOTYPE(bcf_list_ch, bcf_index_list_ch, indel_format_ch.samples_order)
-
-        // Concatenate all variant types
-        concat_vcf_ch = CONCAT_VCF(snp_format_ch.vcf, snp_format_ch.tbi, indel_format_ch.vcf_gz, indel_format_ch.vcf_gz_index, sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index)
-
-        beagle_impute_biallelic_ch = BEAGLE_IMPUTATION(concat_vcf_ch.snp_indel_sv_vcf)
-        pop_snp_ch = POP_SNP(beagle_impute_biallelic_ch.impute_biallelic_vcf)
-        pop_indel_ch = POP_INDEL(beagle_impute_biallelic_ch.impute_biallelic_vcf)
-        pop_sv_ch = POP_SV(beagle_impute_biallelic_ch.impute_biallelic_vcf)
+        // INDEL genotyping (if indel_site_vcf and indel_markers_intervals are provided)
+        if (params.run_indel) {
+            indel_markers_intervals = file(params.indel_markers_intervals, checkIfExists: true)
+            indel_site_vcf = file(params.indel_site_vcf, checkIfExists: true)
+            indel_vcf_ch = UNIFIED_GENOTYPER_INDEL(ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict, indel_markers_intervals, indel_site_vcf)
+            indel_indexed_ch = TABIX_INDEL(indel_vcf_ch.vcf_gz)
+            indel_format_ch = GATK_INDEL_FORMAT(indel_indexed_ch.vcf_gz, indel_indexed_ch.vcf_gz_index, indel_site_vcf)
+        }
+        
+        // SV genotyping (if sv_sites_vcf is provided)
+        if (params.run_sv) {
+            sv_sites_vcf = file(params.sv_sites_vcf, checkIfExists: true)
+            sv_gt_ch = DELLY_SV_GENOTYPE(ref, sv_sites_vcf, bam_tuples_ch)
+            
+            bcf_list_ch = sv_gt_ch.map { sample_id, bcf, bcf_index -> bcf}.collect()
+            bcf_index_list_ch = sv_gt_ch.map { sample_id, bcf, bcf_index -> bcf_index}.collect()
+            
+            // Get samples_order from INDEL if available, otherwise from SNP
+            if (params.run_indel) {
+                sv_merged_ch = BCFTOOLS_MERGE_GENOTYPE(bcf_list_ch, bcf_index_list_ch, indel_format_ch.samples_order)
+            } else if (params.run_snp) {
+                // Extract samples from SNP format output
+                extract_samples_ch = EXTRACT_SAMPLES_ORDER(snp_format_ch.vcf)
+                sv_merged_ch = BCFTOOLS_MERGE_GENOTYPE(bcf_list_ch, bcf_index_list_ch, extract_samples_ch.samples_order)
+            } else {
+                // SV only - extract from first bam
+                extract_samples_ch = EXTRACT_SAMPLES_ORDER(bam_tuples_ch.first())
+                sv_merged_ch = BCFTOOLS_MERGE_GENOTYPE(bcf_list_ch, bcf_index_list_ch, extract_samples_ch.samples_order)
+            }
+        }
+        
+        // Concatenate all variant types (only if multiple types are enabled)
+        def variant_type_count = [params.run_snp, params.run_indel, params.run_sv].count(true)
+        
+        if (variant_type_count > 1) {
+            // Multiple variant types - need to concatenate
+            if (params.run_snp && params.run_indel && params.run_sv) {
+                // All three types
+                concat_vcf_ch = CONCAT_SNP_INDEL_SV(snp_format_ch.vcf, snp_format_ch.tbi, indel_format_ch.vcf_gz, indel_format_ch.vcf_gz_index, sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index)
+            } else if (params.run_snp && params.run_indel) {
+                // SNP + INDEL
+                concat_vcf_ch = CONCAT_SNP_INDEL(snp_format_ch.vcf, snp_format_ch.tbi, indel_format_ch.vcf_gz, indel_format_ch.vcf_gz_index)
+            } else if (params.run_snp && params.run_sv) {
+                // SNP + SV
+                concat_vcf_ch = CONCAT_SNP_SV(snp_format_ch.vcf, snp_format_ch.tbi, sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index)
+            } else if (params.run_indel && params.run_sv) {
+                // INDEL + SV
+                concat_vcf_ch = CONCAT_INDEL_SV(indel_format_ch.vcf_gz, indel_format_ch.vcf_gz_index, sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index)
+            }
+            beagle_input_vcf = concat_vcf_ch.snp_indel_sv_vcf
+        } else {
+            // Single variant type - no concatenation needed
+            if (params.run_snp) {
+                beagle_input_vcf = snp_format_ch.vcf
+            } else if (params.run_indel) {
+                beagle_input_vcf = indel_format_ch.vcf_gz
+            } else if (params.run_sv) {
+                beagle_input_vcf = sv_merged_ch.vcf_gz
+            }
+        }
+        
+        // BEAGLE Imputation (always runs after genotyping)
+        beagle_impute_biallelic_ch = BEAGLE_IMPUTATION(beagle_input_vcf)
+        
+        // POP processes - only run if corresponding genotyping was performed
+        if (params.run_snp) {
+            pop_snp_ch = POP_SNP(beagle_impute_biallelic_ch.impute_biallelic_vcf)
+        }
+        if (params.run_indel) {
+            pop_indel_ch = POP_INDEL(beagle_impute_biallelic_ch.impute_biallelic_vcf)
+        }
+        if (params.run_sv) {
+            pop_sv_ch = POP_SV(beagle_impute_biallelic_ch.impute_biallelic_vcf)
+        }
     }
 }
 
