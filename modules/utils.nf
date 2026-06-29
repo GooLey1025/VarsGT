@@ -68,7 +68,7 @@ process CONCAT_INDEL_SV {
 }
 
 process CONCAT_SNP_INDEL_SV {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir params.out_dir, mode: 'copy', pattern: "*.snp.indel.sv.vcf.gz"
     input:
     path snp_vcf_gz
     path snp_vcf_gz_index
@@ -93,7 +93,9 @@ process CONCAT_SNP_INDEL_SV {
 }
 
 process BEAGLE_IMPUTATION {
-    // publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir params.out_dir, mode: 'copy', pattern: "*.impute.biallelic.vcf.gz"
+    publishDir params.out_dir, mode: 'copy', pattern: "*.snp.indel.sv.vcf.gz"
+
     memory "${params.beagle_memory}"
     cpus "${params.beagle_cpus}"
     input:
@@ -121,7 +123,7 @@ process BEAGLE_IMPUTATION {
 }
 
 process POP_SNP {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir "${params.out_dir}/sub_vcfs/", mode: 'copy', pattern: "*.vcf.gz"
     input:
     path snp_indel_sv_impute_biallelic_vcf
     output:
@@ -133,7 +135,7 @@ process POP_SNP {
 }
 
 process POP_INDEL {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir "${params.out_dir}/sub_vcfs/", mode: 'copy', pattern: "*.vcf.gz"
     input:
     path snp_indel_sv_impute_biallelic_vcf
     output:
@@ -145,7 +147,7 @@ process POP_INDEL {
 }
 
 process POP_SV {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir "${params.out_dir}/sub_vcfs/", mode: 'copy', pattern: "*.vcf.gz"
     input:
     path snp_indel_sv_impute_biallelic_vcf
     output:

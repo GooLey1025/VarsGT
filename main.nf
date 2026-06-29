@@ -65,7 +65,7 @@ def findJava8() {
     """
 }
 
-params.fq_or_bam_dir_glob = null
+params.fq_or_bam_dir_glob = params.fq_or_bam_dir_glob ?: params.fq_dir_glob
 params.gbz = null
 params.out_dir = "output_dir"
 params.ref_paths = null

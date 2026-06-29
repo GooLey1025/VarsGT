@@ -46,7 +46,7 @@ echo 'export PATH="$PATH:'$(pwd)'"' >> ~/.bashrc
 ### (Required) Index files for graph pangenome-based genotyping.
 For **Inbred line 705 rice accessions**
 ```sh
-wget --content-disposition https://ndownloader.figshare.com/files/63989128
+wget --content-disposition https://ndownloader.figshare.com/files/63989131
 unzip 705rice_VarsGT_index.zip
 
 ```
