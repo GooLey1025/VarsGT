@@ -22,7 +22,6 @@ process kmc_kmer {
 process giraffe_mapping {
     cpus "${params.giraffe_mapping_cpus_per_task}"
     memory "${params.giraffe_mapping_memory_per_task}"
-    publishDir "${params.out_dir}/bam", mode: 'copy'
     maxForks "${params.giraffe_mapping_parallel_number}"
     
     input:

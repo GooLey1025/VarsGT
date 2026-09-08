@@ -74,6 +74,13 @@ params.giraffe_mapping_memory_per_task = null
 params.giraffe_mapping_cpus_per_task = null
 params.giraffe_mapping_parallel_number = null
 
+// Duplicate handling for FASTQ input mode:
+// false (default): remove duplicates; true: retain reads and mark them with flag 0x400
+params.mark_duplicates = params.containsKey('mark_duplicates') ? params.mark_duplicates : false
+if (!(params.mark_duplicates instanceof Boolean)) {
+    error "Parameter 'mark_duplicates' must be boolean (true or false), got: ${params.mark_duplicates}"
+}
+
 // GATK-DELLY Genotyping parameters
 params.project = "cohort"
 params.ref = null
@@ -239,9 +246,10 @@ workflow {
         qname_bam_ch = bam_sort_by_name(rg_bam_ch)  // => tuple(sample_id, qname.bam)
         fixmate_bam_ch = bam_fixmate(qname_bam_ch)  // => tuple(sample_id, fixmate.bam)
         pos_bam_ch = bam_sort_by_pos(fixmate_bam_ch, params.prefix)  // => tuple(sample_id, pos.bam)
-        markdup_bam_ch = bam_markdup(pos_bam_ch)  // => tuple(sample_id, markdup.bam)
+        markdup_bam_ch = bam_markdup(pos_bam_ch, params.mark_duplicates)  // => tuple(sample_id, markdup.bam)
         indexed_bam_ch = bam_index(markdup_bam_ch)  // => tuple(sample_id, markdup.bam, markdup.bam.bai)
         
+        println "[INFO] Duplicate handling: ${params.mark_duplicates ? 'mark and retain' : 'remove'}"
         println "[INFO] FASTQ input mode: Total samples = ${indexed_bam_ch.count()}"
     }
 

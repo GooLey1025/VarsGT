@@ -85,14 +85,16 @@ process bam_markdup {
     input:
     tuple val(sample_id),
           path(pos_bam)
+    val(mark_duplicates)
 
     output:
     tuple val(sample_id),
-          path("${sample_id}.sort.markdup.bam")
+          path("${sample_id}.sort.rg.markdup.bam")
 
     script:
+    def remove_option = mark_duplicates ? "" : "-r"
     """
-    ${params.samtools} markdup -@ ${task.cpus} -s ${pos_bam} ${sample_id}.sort.markdup.bam
+    ${params.samtools} markdup -@ ${task.cpus} -s ${remove_option} ${pos_bam} ${sample_id}.sort.rg.markdup.bam
     """
 }
 
@@ -109,8 +111,8 @@ process bam_index {
 
     output:
     tuple val(sample_id),
-          path("${sample_id}.sort.markdup.bam"),
-          path("${sample_id}.sort.markdup.bam.bai")
+          path("${sample_id}.sort.rg.markdup.bam"),
+          path("${sample_id}.sort.rg.markdup.bam.bai")
 
     script:
     """
