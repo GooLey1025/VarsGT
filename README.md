@@ -1,6 +1,6 @@
 **VarsGT** (**Var**iants **G**eno**T**yping) is a workflow designed for generating high-quality VCF files from second-generation sequencing (NGS) reads. By integrating allele-based genotyping strategies, it enables accurate detection and representation of SNPs, INDELs, and structural variants (SVs), thereby providing a comprehensive variant landscape for genomic selection.
 
-VarsGT is currently built upon marker panels derived from two rice populations, namely the inbred rice population (705 accessions) and the hybrid rice population (1,171 accessions).
+VarsGT is currently built upon marker panels derived from three rice populations, of which two inbred rice populations (Rice655, Rice3305) and one hybrid rice population (Rice1171).
 
 ## Installation
 
