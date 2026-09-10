@@ -119,24 +119,3 @@ process bam_index {
     ${params.samtools} index -@ ${task.cpus} ${markdup_bam}
     """
 }
-
-process bam_index_existing {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
-    publishDir "${params.out_dir}/bam", mode: 'copy'
-
-    input:
-    tuple val(sample_id),
-          path(input_bam)
-
-    output:
-    tuple val(sample_id),
-          path("${input_bam}"),
-          path("${input_bam}.bai")
-
-    script:
-    """
-    ${params.samtools} index -@ ${task.cpus} ${input_bam}
-    """
-}

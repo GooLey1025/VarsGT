@@ -1,5 +1,5 @@
 process CONCAT_SNP_INDEL {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir params.out_dir, mode: 'copy'
     input:
     path snp_vcf_gz
     path snp_vcf_gz_index
@@ -7,22 +7,17 @@ process CONCAT_SNP_INDEL {
     path indel_vcf_gz_index
     output:
     path "${params.project}.snp.indel.sv.vcf.gz", emit: snp_indel_sv_vcf
-    path "${params.project}.snp.indel.sv.biallelic.vcf.gz"
-    path "${params.project}.snp.biallelic.vcf.gz", emit: snp_biallelic_vcf
-    path "${params.project}.indel.biallelic.vcf.gz", emit: indel_biallelic_vcf
-    path "${params.project}.sv.biallelic.vcf.gz", emit: sv_biallelic_vcf
+    path "${params.project}.snp.indel.sv.vcf.gz.csi", emit: snp_indel_sv_vcf_index
     script:
     """
-    ${params.bcftools} concat -a ${snp_vcf_gz} ${indel_vcf_gz} -o ${params.project}.snp.indel.sv.vcf.gz
-    ${params.bcftools} norm -m -both ${params.project}.snp.indel.sv.vcf.gz -o ${params.project}.snp.indel.sv.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SNP-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.snp.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^INDEL-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.indel.biallelic.vcf.gz
-    touch ${params.project}.sv.biallelic.vcf.gz
+    set -euo pipefail
+    ${params.bcftools} concat -a -Oz -o ${params.project}.snp.indel.sv.vcf.gz ${snp_vcf_gz} ${indel_vcf_gz}
+    ${params.bcftools} index -f ${params.project}.snp.indel.sv.vcf.gz
     """
 }
 
 process CONCAT_SNP_SV {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir params.out_dir, mode: 'copy'
     input:
     path snp_vcf_gz
     path snp_vcf_gz_index
@@ -30,22 +25,17 @@ process CONCAT_SNP_SV {
     path sv_vcf_gz_index
     output:
     path "${params.project}.snp.indel.sv.vcf.gz", emit: snp_indel_sv_vcf
-    path "${params.project}.snp.indel.sv.biallelic.vcf.gz"
-    path "${params.project}.snp.biallelic.vcf.gz", emit: snp_biallelic_vcf
-    path "${params.project}.indel.biallelic.vcf.gz", emit: indel_biallelic_vcf
-    path "${params.project}.sv.biallelic.vcf.gz", emit: sv_biallelic_vcf
+    path "${params.project}.snp.indel.sv.vcf.gz.csi", emit: snp_indel_sv_vcf_index
     script:
     """
-    ${params.bcftools} concat -a ${snp_vcf_gz} ${sv_vcf_gz} -o ${params.project}.snp.indel.sv.vcf.gz
-    ${params.bcftools} norm -m -both ${params.project}.snp.indel.sv.vcf.gz -o ${params.project}.snp.indel.sv.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SNP-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.snp.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SV-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.sv.biallelic.vcf.gz
-    touch ${params.project}.indel.biallelic.vcf.gz
+    set -euo pipefail
+    ${params.bcftools} concat -a -Oz -o ${params.project}.snp.indel.sv.vcf.gz ${snp_vcf_gz} ${sv_vcf_gz}
+    ${params.bcftools} index -f ${params.project}.snp.indel.sv.vcf.gz
     """
 }
 
 process CONCAT_INDEL_SV {
-    publishDir params.out_dir, mode: 'copy', pattern: "*.vcf.gz"
+    publishDir params.out_dir, mode: 'copy'
     input:
     path indel_vcf_gz
     path indel_vcf_gz_index
@@ -53,17 +43,12 @@ process CONCAT_INDEL_SV {
     path sv_vcf_gz_index
     output:
     path "${params.project}.snp.indel.sv.vcf.gz", emit: snp_indel_sv_vcf
-    path "${params.project}.snp.indel.sv.biallelic.vcf.gz"
-    path "${params.project}.snp.biallelic.vcf.gz", emit: snp_biallelic_vcf
-    path "${params.project}.indel.biallelic.vcf.gz", emit: indel_biallelic_vcf
-    path "${params.project}.sv.biallelic.vcf.gz", emit: sv_biallelic_vcf
+    path "${params.project}.snp.indel.sv.vcf.gz.csi", emit: snp_indel_sv_vcf_index
     script:
     """
-    ${params.bcftools} concat -a ${indel_vcf_gz} ${sv_vcf_gz} -o ${params.project}.snp.indel.sv.vcf.gz
-    ${params.bcftools} norm -m -both ${params.project}.snp.indel.sv.vcf.gz -o ${params.project}.snp.indel.sv.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^INDEL-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.indel.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SV-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.sv.biallelic.vcf.gz
-    touch ${params.project}.snp.biallelic.vcf.gz
+    set -euo pipefail
+    ${params.bcftools} concat -a -Oz -o ${params.project}.snp.indel.sv.vcf.gz ${indel_vcf_gz} ${sv_vcf_gz}
+    ${params.bcftools} index -f ${params.project}.snp.indel.sv.vcf.gz
     """
 }
 
@@ -78,17 +63,12 @@ process CONCAT_SNP_INDEL_SV {
     path sv_vcf_gz_index
     output:
     path "${params.project}.snp.indel.sv.vcf.gz", emit: snp_indel_sv_vcf
-    path "${params.project}.snp.indel.sv.biallelic.vcf.gz"
-    path "${params.project}.snp.biallelic.vcf.gz", emit: snp_biallelic_vcf
-    path "${params.project}.indel.biallelic.vcf.gz", emit: indel_biallelic_vcf
-    path "${params.project}.sv.biallelic.vcf.gz", emit: sv_biallelic_vcf
+    path "${params.project}.snp.indel.sv.vcf.gz.csi", emit: snp_indel_sv_vcf_index
     script:
     """
-    ${params.bcftools} concat -a ${snp_vcf_gz} ${indel_vcf_gz} ${sv_vcf_gz} -o ${params.project}.snp.indel.sv.vcf.gz
-    ${params.bcftools} norm -m -both ${params.project}.snp.indel.sv.vcf.gz -o ${params.project}.snp.indel.sv.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SNP-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.snp.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^INDEL-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.indel.biallelic.vcf.gz
-    ${params.bcftools} view -i 'ID ~ "^SV-"' ${params.project}.snp.indel.sv.biallelic.vcf.gz -o ${params.project}.sv.biallelic.vcf.gz
+    set -euo pipefail
+    ${params.bcftools} concat -a -Oz -o ${params.project}.snp.indel.sv.vcf.gz ${snp_vcf_gz} ${indel_vcf_gz} ${sv_vcf_gz}
+    ${params.bcftools} index -f ${params.project}.snp.indel.sv.vcf.gz
     """
 }
 
@@ -116,9 +96,10 @@ process BEAGLE_IMPUTATION {
     ${params.bcftools} view -h ${input_vcf} >> header.tmp
 
 
-    bgzip \$(basename ${input_vcf} .vcf.gz).impute.vcf.gz -d -c > \$(basename ${input_vcf} .vcf.gz).impute.vcf
+    ${params.bgzip} \$(basename ${input_vcf} .vcf.gz).impute.vcf.gz -d -c > \$(basename ${input_vcf} .vcf.gz).impute.vcf
     ${params.bcftools} reheader -h header.tmp \$(basename ${input_vcf} .vcf.gz).impute.vcf > \$(basename ${input_vcf} .vcf.gz).impute.reheader.vcf 
-    ${params.bcftools} norm -m -both \$(basename ${input_vcf} .vcf.gz).impute.reheader.vcf -o \$(basename ${input_vcf} .vcf.gz).impute.biallelic.vcf.gz
+    ${params.bcftools} norm -m -both -Oz -o \$(basename ${input_vcf} .vcf.gz).impute.biallelic.vcf.gz \$(basename ${input_vcf} .vcf.gz).impute.reheader.vcf
+    ${params.bcftools} index -f \$(basename ${input_vcf} .vcf.gz).impute.biallelic.vcf.gz
     """
 }
 
@@ -130,7 +111,7 @@ process POP_SNP {
     path "${params.project}.snp.impute.biallelic.vcf.gz", emit: snp_vcf
     script:
     """
-    ${params.bcftools} view -i 'ID ~ "^SNP-"' ${snp_indel_sv_impute_biallelic_vcf} -o ${params.project}.snp.impute.biallelic.vcf.gz
+    ${params.bcftools} view -i 'ID ~ "^SNP-"' -Oz -o ${params.project}.snp.impute.biallelic.vcf.gz ${snp_indel_sv_impute_biallelic_vcf}
     """
 }
 
@@ -142,7 +123,7 @@ process POP_INDEL {
     path "${params.project}.indel.impute.biallelic.vcf.gz", emit: indel_vcf
     script:
     """
-    ${params.bcftools} view -i 'ID ~ "^INDEL-"' ${snp_indel_sv_impute_biallelic_vcf} -o ${params.project}.indel.impute.biallelic.vcf.gz
+    ${params.bcftools} view -i 'ID ~ "^INDEL-"' -Oz -o ${params.project}.indel.impute.biallelic.vcf.gz ${snp_indel_sv_impute_biallelic_vcf}
     """
 }
 
