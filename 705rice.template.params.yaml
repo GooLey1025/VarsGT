@@ -30,7 +30,8 @@ bam_per_task_threads: 4
 bam_per_task_memory: "5 GB"
 bam_max_parallel_num: 10
 
-# Graph, GATK, PanGenie, and Beagle resources are derived from index_dir.
+# Graph files come from index_dir. Genotyping sites and the Beagle panel
+# come from panel_dir; omit panel_dir to use index_dir for both.
 
 # Optional tool paths - if not specified, tools will be used from system PATH
 # Leave empty or omit to use tools from system PATH

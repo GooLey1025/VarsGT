@@ -8,32 +8,43 @@ Usage:
 
 Required:
   --fq-dir-glob GLOB       Paired FASTQ glob, e.g. /data/reads/*.read{1,2}.fastq.gz
-  --index-dir DIR          Panel root, e.g. /data/705rice_VarsGT_index
-
-The six-column SV site file is discovered inside --index-dir.
+  --index-dir DIR          Giraffe graph index, e.g. /data/Nip_42_rice_Index
 
 Common options:
+  --panel-dir DIR          Genotyping panel. SNP/INDEL/SV sites, intervals, and
+                           the Beagle reference panel are read from here.
+                           Defaults to --index-dir.
+
   --project NAME           Project name (default: varsgt)
   --out-dir DIR            Output directory (default: ./varsgt_out)
   --work-dir DIR           Nextflow work directory (default: ./work)
-  --resume                 Resume cached Nextflow tasks
+  -w DIR                   Alias for --work-dir
+  -resume [RUN]           Resume cached Nextflow tasks. RUN may be a run name,
+                          session ID, or "last" (default when omitted)
+  --resume                Backward-compatible alias for -resume
   --validate-only          Validate inputs and tools, then exit
   --help                   Show this help
 
 Advanced options can be passed to Nextflow with --param value, for example:
   --giraffe-mapping-cpus-per-task 24
+  --vg-path /absolute/path/to/vg   Use vg v1.71.0+ for format-v6 .hapl indexes
 EOF
 }
 
 fq_dir_glob=""
 index_dir=""
+panel_dir=""
 project="varsgt"
 out_dir="./varsgt_out"
 work_dir="./work"
-resume=false
+resume_args=()
 validate_only=false
-nextflow_args=()
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Compute nodes may not have external DNS/network access.
+export NXF_OFFLINE="${NXF_OFFLINE:-true}"
+args=(
+    run "${script_dir}/main.nf"
+)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -41,14 +52,22 @@ while [[ $# -gt 0 ]]; do
             fq_dir_glob="$2"; shift 2 ;;
         --index-dir)
             index_dir="$2"; shift 2 ;;
+        --panel-dir)
+            panel_dir="$2"; shift 2 ;;
         --project)
             project="$2"; shift 2 ;;
         --out-dir)
             out_dir="$2"; shift 2 ;;
-        --work-dir)
+        --work-dir|-w|-work-dir)
             work_dir="$2"; shift 2 ;;
-        --resume)
-            resume=true; shift ;;
+        -resume|--resume)
+            resume_args=(-resume)
+            if [[ $# -ge 2 && "$2" != -* ]]; then
+                resume_args+=("$2")
+                shift 2
+            else
+                shift
+            fi ;;
         --validate-only)
             validate_only=true; shift ;;
         --help|-h)
@@ -59,7 +78,7 @@ while [[ $# -gt 0 ]]; do
                 echo "[ERROR] Missing value for ${1}" >&2
                 exit 2
             fi
-            nextflow_args+=(--"${key//-/_}" "$2")
+            args+=(--"${key//-/_}" "$2")
             shift 2 ;;
         *)
             echo "[ERROR] Unknown argument: $1" >&2
@@ -70,16 +89,20 @@ done
 
 [[ -n "$fq_dir_glob" ]] || { echo "[ERROR] --fq-dir-glob is required." >&2; exit 2; }
 [[ -n "$index_dir" ]] || { echo "[ERROR] --index-dir is required." >&2; exit 2; }
-args=(
-    run "${script_dir}/main.nf"
+args+=(
     --fq_dir_glob "$fq_dir_glob"
     --index_dir "$index_dir"
     --project "$project"
     --out_dir "$out_dir"
     -work-dir "$work_dir"
 )
+if [[ -n "$panel_dir" ]]; then
+    args+=(--panel_dir "$panel_dir")
+fi
 
 $validate_only && args+=(--validate_only true) || true
-$resume && args+=(-resume) || true
+if [[ ${#resume_args[@]} -gt 0 ]]; then
+    args+=("${resume_args[@]}")
+fi
 
-exec nextflow "${args[@]}" "${nextflow_args[@]}"
+exec nextflow "${args[@]}"

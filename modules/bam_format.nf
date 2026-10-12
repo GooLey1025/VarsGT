@@ -1,7 +1,7 @@
 process bam_addreplacerg {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
 
     input:
     tuple val(sample_id),
@@ -20,9 +20,9 @@ process bam_addreplacerg {
 }
 
 process bam_sort_by_name {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
 
     input:
     tuple val(sample_id),
@@ -39,9 +39,9 @@ process bam_sort_by_name {
 }
 
 process bam_fixmate {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
 
     input:
     tuple val(sample_id),
@@ -58,9 +58,9 @@ process bam_fixmate {
 }
 
 process bam_sort_by_pos {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
 
     input:
     tuple val(sample_id),
@@ -78,32 +78,30 @@ process bam_sort_by_pos {
 }
 
 process bam_markdup {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
 
     input:
     tuple val(sample_id),
           path(pos_bam)
-    val(mark_duplicates)
 
     output:
     tuple val(sample_id),
           path("${sample_id}.sort.rg.markdup.bam")
 
     script:
-    def remove_option = mark_duplicates ? "" : "-r"
+    def remove_option = params.mark_duplicates ? "" : "-r"
     """
     ${params.samtools} markdup -@ ${task.cpus} -s ${remove_option} ${pos_bam} ${sample_id}.sort.rg.markdup.bam
     """
 }
 
 process bam_index {
-    cpus "${params.bam_per_task_threads}"
-    memory "${params.bam_per_task_memory}"
-    maxForks "${params.bam_max_parallel_num}"
-    publishDir "${params.out_dir}/bam", mode: 'copy'
-
+    cpus params.bam_per_task_threads
+    memory params.bam_per_task_memory
+    maxForks params.bam_max_parallel_num
+    publishDir { "${params.out_dir}/bam" }, mode: 'copy'
 
     input:
     tuple val(sample_id),

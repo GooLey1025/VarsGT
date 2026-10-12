@@ -1,21 +1,18 @@
 **VarsGT** (**Var**iants **G**eno**T**yping) is a workflow designed for generating high-quality VCF files from second-generation sequencing (NGS) reads. By integrating allele-based genotyping strategies, it enables accurate detection and representation of SNPs, INDELs, and structural variants (SVs), thereby providing a comprehensive variant landscape for genomic selection.
 
-VarsGT is currently built upon marker panels derived from three rice populations, of which two inbred rice populations (Rice655, Rice3305) and one hybrid rice population (Rice1171).
+VarsGT is currently built upon marker panels derived from two rice populations, namely the inbred rice population (705 accessions) and the hybrid rice population (1,171 accessions).
 
 ## Installation
 
 ### Recommended: use the VarsGT image
 
-The image contains Nextflow, Java 17, a separate Java 8 runtime for GATK 3.7,
-and all command-line and Java-based workflow dependencies.
+The image contains Nextflow, Java 17, a separate Java 8 runtime for GATK 3.7, and all command-line and Java-based workflow dependencies.
 
 ```bash
 docker pull goley04/varsgt:latest
 ```
 
-The image does not contain FASTQ data or the large rice index packages. The
-simplest approach is to run from a directory containing `reads/` and the
-downloaded index directory, and mount the current directory once:
+The image does not contain FASTQ data or the large rice index packages. The simplest approach is to run from a directory containing `reads/` and the downloaded index directory, and mount the current directory once:
 
 ```bash
 docker run --rm \
@@ -24,18 +21,17 @@ docker run --rm \
   goley04/varsgt:latest \
   run /opt/varsgt/main.nf \
   --fq_dir_glob "/data/reads/*.read{1,2}.fastq.gz" \
-  --index_dir /data/705rice_VarsGT_index \
-  --project my_project \
-  --out_dir /data/results \
+  --index_dir /data/Nip_42_rice_Index \
+  --panel_dir /data/Rice655_VarsGT_index \
+  --project Rice655_task \
+  --out_dir /data/Rice655_task_out \
   -work-dir /data/work \
   -resume
 ```
 
 ### Manual installation
 
-Manual installation remains supported for systems where Docker is unavailable.
-It requires separate Java 17 and Java 8 runtimes plus the native bioinformatics
-tools. Follow the complete [manual installation guide](docs/INSTALL.md).
+Manual installation remains supported for systems where Docker is unavailable. It requires separate Java 17 and Java 8 runtimes plus the native bioinformatics tools. Follow the complete [manual installation guide](docs/INSTALL.md).
 
 ### Required index files for graph pangenome-based genotyping
 
@@ -43,14 +39,14 @@ For **Inbred line 705 rice accessions**
 
 ```sh
 wget --content-disposition https://ndownloader.figshare.com/files/63989131
-unzip 705rice_VarsGT_index.zip
+unzip Rice655_VarsGT_index.zip
 ```
 
 For **Hybrid line 1171 rice accessions**
 
 ```sh
 wget --content-disposition https://ndownloader.figshare.com/files/63989128
-unzip 1171rice_VarsGT_index.zip
+unzip Rice1171_VarsGT_index.zip
 ```
 
 
@@ -87,21 +83,29 @@ The main entry point is:
 ```sh
 ./varsgt \
   --fq-dir-glob "/data/reads/*.read{1,2}.fastq.gz" \
-  --index-dir "/data/705rice_VarsGT_index" \
+  --index-dir "/data/Nip_42_rice_Index" \
+  --panel-dir "/data/705rice_VarsGT_index" \
   --project 705rice_task \
   --out-dir /results/705rice_task \
-  --resume
+  -resume
 ```
+
+`-resume` follows Nextflow's native syntax. With no value it resumes the most
+recent compatible execution. A Nextflow run name or session ID can also be
+specified, for example `-resume last`, `-resume determined_borg`, or
+`-resume 4dc3bb0e-...`. The older `--resume` spelling remains supported.
 
 The index directory must contain exactly one `*.sv.sites.tsv`,
 `*.sv.sites.vcf`, or `*.sv.sites.txt` file. VarsGT matches its columns 1, 2, 4,
 and 5 as `CHROM`, `POS`, `REF`, and `ALT`; header and comment lines are ignored.
 ALT must already be biallelic.
 
-`--index-dir` must point to the complete panel root and contain the graph,
-GATK, Beagle, and PanGenie resources, including
-`Nip_42_rice_pangenie.index/`,
-`Nip_42_rice.filtered_ids_biallelic.vcf.gz`, and `Nip_GraphName.fa`.
+`--index-dir` is the Giraffe graph. It supplies `Nip_42_rice.gbz`,
+`Nip_42_rice.hapl`, `Nip_42_rice.ref_order.txt`, `Nip_42_rice.graph_prefix.txt`,
+and `Nip.chrnum.sorted.fa`. `--panel-dir` is the genotyping panel. It supplies
+the SNP, INDEL, and SV site files, marker intervals, and `*.ref_panel.vcf.gz`.
+When `--panel-dir` is omitted, both sets of files are read from `--index-dir`.
+Keep `--index-dir` on the same path to reuse a finished Giraffe mapping.
 
 
 
