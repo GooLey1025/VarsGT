@@ -105,4 +105,7 @@ if [[ ${#resume_args[@]} -gt 0 ]]; then
     args+=("${resume_args[@]}")
 fi
 
-exec nextflow "${args[@]}"
+# Keep Nextflow's ANSI live progress display. In current Nextflow versions the
+# ANSI observer collapses cached tasks into each process summary instead of
+# printing one permanent line per cached task.
+exec nextflow "${args[@]}" -ansi-log true

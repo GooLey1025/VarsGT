@@ -49,8 +49,6 @@ wget --content-disposition https://ndownloader.figshare.com/files/63989128
 unzip Rice1171_VarsGT_index.zip
 ```
 
-
-
 ## Quick test
 
 This will read test data from `test_fq/` and output final relevant files in `test/`.
@@ -73,8 +71,6 @@ cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
 The test will take about 15 minutes to run.
 
 ## Usage Case
-
-
 
 ### CLI usage
 
@@ -107,7 +103,11 @@ the SNP, INDEL, and SV site files, marker intervals, and `*.ref_panel.vcf.gz`.
 When `--panel-dir` is omitted, both sets of files are read from `--index-dir`.
 Keep `--index-dir` on the same path to reuse a finished Giraffe mapping.
 
+### Rebuild a genotyping panel
 
+`main.make_ref.sh` rebuilds the SNP, INDEL, SV, and Beagle files in `--panel-dir` from a final marker panel. SV sites are filled from `DELLY_RAW_VCFS`, the original DELLY callsets that still carry the INFO records `delly call` needs. The default command builds the Rice1171 `r2=0.02` panel into `Rice1171_VarsGT_Index`. Giraffe graph files and the Nipponbare FASTA stay in place.
+
+Inputs, the Rice1171 defaults, and the settings for another panel such as Rice655 are documented in [Rebuild a VarsGT reference panel](docs/make_ref.md).
 
 ## `vcf_filter_impute.nf`
 
@@ -119,8 +119,6 @@ This standalone workflow is **Path C** for rice users who already have a whole-g
 - The `CHROM` column must contain only the numbers `1` through `12`. Values such as `chr1`, `Chr1`, or other chromosome prefixes are rejected.
 - Input data are assumed to be biallelic by default. For a multiallelic VCF, add `--biallelic true`; the workflow will first run `bcftools norm -m -any`.
 - The reference panel must be a compressed VCF supported by Beagle, such as the `705rice`, `3485rice`, or `1171rice` panel downloaded with the corresponding VarsGT index package.
-
-
 
 ### Match rate and filtering
 

@@ -1,70 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-def checkJava8(java_cmd) {
-    def proc = ["bash", "-c", "${java_cmd} -version 2>&1"].execute()
-    proc.waitFor()
-    def output = proc.text
-
-    if (!(output =~ /version "1\.8\./)) {
-        error """
-        [ERROR] GATK requires Java 8, but detected:
-
-        ${output}
-
-        Please set:
-        params.gatk_java_path = "/path/to/java8/bin/java"
-        """
-    } else {
-        println "[INFO] GATK Java version OK:"
-        println output
-    }
-}
-def findJava8() {
-
-    // find all java
-    def proc = ["bash", "-c", "which -a java 2>/dev/null | uniq"].execute()
-    proc.waitFor()
-    def java_list = proc.text.readLines()
-
-    if (!java_list || java_list.size() == 0) {
-        error "[ERROR] No Java executable found in PATH"
-    }
-
-    println "[INFO] Found Java candidates:"
-    java_list.each { println "  - ${it}" }
-
-    // check each version
-    for (j in java_list) {
-        def p = ["bash", "-c", "${j} -version 2>&1"].execute()
-        p.waitFor()
-        def out = p.text
-
-        if (out =~ /version "1\.8\./) {
-            println "[INFO] Java 8 detected: ${j}"
-            println out
-            return j
-        }
-    }
-
-    // if not found Java 8
-    error """
-    [ERROR] No Java 8 found in PATH.
-
-    Detected Java versions:
-    ${java_list.collect { j ->
-        def p = ["bash", "-c", "${j} -version 2>&1"].execute()
-        p.waitFor()
-        "${j} -> ${p.text.split('\\n')[0]}"
-    }.join('\n\t')}
-
-    Please install Java 8 and ensure it is available in PATH,
-    or explicitly set:
-    gatk_java_path = "/path/to/java8/bin/java"
-    in your params.yaml file.
-    """
-}
-
 def checkVgVersion(vg_cmd) {
     def proc = ["bash", "-c", "${vg_cmd} version 2>&1"].execute()
     proc.waitFor()
@@ -126,8 +62,7 @@ params.indel_site_vcf = null
 params.snp_markers_intervals = null
 params.indel_markers_intervals = null
 // Optional tool paths - if not specified, tools will be used from system PATH
-params.gatk_java_path = null  // Java 8 path for GATK UnifiedGenotyper only (required for GATK 3.7)
-params.java_path = null       // Java path for other tools (Picard, etc.)
+params.java_path = null       // Java executable for GATK4, Picard, and Beagle.
 params.delly_path = null
 params.bcftools_path = null
 params.samtools_path = null
@@ -138,13 +73,14 @@ params.vg_path = null
 params.bgzip_path = null
 params.kmc_path = null
 // Required software paths (JAR files)
-params.gatk_path = baseDir.resolve("softwares/GenomeAnalysisTK3.7.jar").toString()
+params.gatk_path = "/data4/qiujie/biosoftwares/GATK_tools/v4.6.2/gatk-package-4.6.2.0-local.jar"
 params.picard_path = baseDir.resolve("softwares/picard.jar").toString()
 params.beagle_path = baseDir.resolve("softwares/beagle.27Feb25.75f.jar").toString()
 
 // Resource configuration (with defaults)
 params.threads = 48
 params.gatk_memory = '100g'
+params.gatk_interval_padding = 100
 
 // Fixed paths for repository utility scripts.
 params.assign_id = file("${baseDir}/scripts/assign_id.sh", checkIfExists: true)
@@ -163,17 +99,9 @@ if (params.picard_path) {
     params.picard = null
 }
 
-// Set tool executables - use specified path if provided, otherwise use tool name (from PATH)
-// Handle both null and empty string cases
-// GATK Java (Java 8) - for GATK UnifiedGenotyper only (GATK 3.7 requires Java 8)
-if (params.gatk_java_path && params.gatk_java_path.toString().trim()) {
-    params.gatk_java = file(params.gatk_java_path).toAbsolutePath().toString()
-    checkJava8(params.gatk_java)   // manually specified → strong check
-} else {
-    params.gatk_java = findJava8() // automatically find Java 8
-}
-// General Java - for Picard and other tools (can use newer Java versions)
-params.java = (params.java_path && params.java_path.toString().trim()) ? file(params.java_path).toAbsolutePath().toString() : 'java'
+// GATK4 uses the same configurable Java executable as the other Java tools.
+def configured_java = params.java_path?.toString()?.trim()
+params.java = configured_java ? file(configured_java).toAbsolutePath().toString() : 'java'
 params.delly = (params.delly_path && params.delly_path.toString().trim()) ? file(params.delly_path).toAbsolutePath().toString() : 'delly'
 params.bcftools = (params.bcftools_path && params.bcftools_path.toString().trim()) ? file(params.bcftools_path).toAbsolutePath().toString() : 'bcftools'
 params.samtools = (params.samtools_path && params.samtools_path.toString().trim()) ? file(params.samtools_path).toAbsolutePath().toString() : 'samtools'
@@ -225,25 +153,17 @@ def resolved_ref_impute_panel_vcf = panel_vcfs[0].toString()
 params.beagle = file(params.beagle_path, checkIfExists: true).toAbsolutePath().toString()
 
 def snp_site_files = findDirFiles(panel_dir, /.*\.snp\.sites\.vcf(\.gz)?/)
-def snp_interval_files = findDirFiles(panel_dir, /.*\.(snp\.markers\.intervals|marker\.intervals)/)
 def indel_site_files = findDirFiles(panel_dir, /.*\.indel\.sites\.vcf(\.gz)?/)
-def indel_interval_files = findDirFiles(panel_dir, /.*\.indel\.markers\.intervals/)
 def sv_site_files = findDirFiles(panel_dir, /.*\.(delly\.)?sv\.sites\.(bcf|vcf|vcf\.gz)/)
 
-if (snp_site_files.size() > 1 || snp_interval_files.size() > 1) {
-    error "[ERROR] SNP mode requires at most one SNP sites VCF and one SNP interval file in ${panel_dir}."
+if (snp_site_files.size() > 1) {
+    error "[ERROR] SNP mode requires at most one SNP sites VCF in ${panel_dir}."
 }
-if (indel_site_files.size() > 1 || indel_interval_files.size() > 1) {
-    error "[ERROR] INDEL mode requires at most one INDEL sites VCF and one INDEL interval file in ${panel_dir}."
+if (indel_site_files.size() > 1) {
+    error "[ERROR] INDEL mode requires at most one INDEL sites VCF in ${panel_dir}."
 }
 if (sv_site_files.size() > 1) {
     error "[ERROR] SV mode requires at most one SV sites file in ${panel_dir}."
-}
-if ((snp_site_files.size() == 1) != (snp_interval_files.size() == 1)) {
-    error "[ERROR] Incomplete SNP resources: provide both *.snp.sites.vcf[.gz] and *.snp.markers.intervals (or *.marker.intervals)."
-}
-if ((indel_site_files.size() == 1) != (indel_interval_files.size() == 1)) {
-    error "[ERROR] Incomplete INDEL resources: provide both *.indel.sites.vcf[.gz] and *.indel.markers.intervals."
 }
 
 params.run_snp = snp_site_files.size() == 1
@@ -271,8 +191,6 @@ def resolved_ref_paths = ref_path_files[0].toString()
 def resolved_ref = index_paths.ref.toString()
 def resolved_snp_site_vcf = params.run_snp ? snp_site_files[0].toString() : null
 def resolved_indel_site_vcf = params.run_indel ? indel_site_files[0].toString() : null
-def resolved_snp_intervals = params.run_snp ? snp_interval_files[0].toString() : null
-def resolved_indel_intervals = params.run_indel ? indel_interval_files[0].toString() : null
 
 if (params.validate_only ?: false) {
     println "[INFO] VarsGT input validation completed successfully."
@@ -289,7 +207,7 @@ if (params.validate_only ?: false) {
 
 include { kmc_kmer; giraffe_mapping } from './modules/giraffe_map'
 include { bam_addreplacerg; bam_sort_by_name; bam_fixmate; bam_sort_by_pos; bam_markdup; bam_index } from './modules/bam_format'
-include { INDEX_REFERENCE; UNIFIED_GENOTYPER_SNP; UNIFIED_GENOTYPER_INDEL; GATK_SNP_FORMAT; GATK_INDEL_FORMAT; TABIX_SNP; TABIX_INDEL } from './modules/snp_indel_gt'
+include { INDEX_REFERENCE; PREPARE_SNP_INDEL_SITES; HAPLOTYPE_CALLER_SNP_INDEL; FILL_MISSING_SNP_INDEL_SITES; MERGE_AND_FORMAT_SNP_INDEL } from './modules/snp_indel_gt'
 include { DELLY_SV_GENOTYPE; BCFTOOLS_MERGE_GENOTYPE } from './modules/sv_gt'
 include { CONCAT_SNP_INDEL; CONCAT_SNP_SV; CONCAT_INDEL_SV; CONCAT_SNP_INDEL_SV; BEAGLE_IMPUTATION; POP_SNP; POP_INDEL; POP_SV; EXTRACT_SAMPLES_ORDER } from './modules/utils'
 
@@ -332,45 +250,39 @@ workflow {
         // Index reference genome (always needed for GATK)
         index_ref_ch = INDEX_REFERENCE(ref, picard, params.threads, params.samtools, params.java)
         
-        // Collect BAM files deterministically for GATK UnifiedGenotyper.
-        // collect() flattens tuples by default, mixing sample IDs with Path objects.
-        bam_list_ch = indexed_bam_ch
-            .toSortedList { a, b -> a[0].toString() <=> b[0].toString() }
-            .map { rows ->
-                rows.collectMany { sample_id, bam, bai -> [bam, bai] }
+        // SNP and INDEL known alleles are combined once. GATK4 HaplotypeCaller
+        // then runs per sample because it is a single-sample caller.
+        if (params.run_snp || params.run_indel) {
+            def small_variant_site_paths = []
+            if (params.run_snp) {
+                small_variant_site_paths << file(resolved_snp_site_vcf, checkIfExists: true)
             }
-        
-        // SNP genotyping (if snp_site_vcf and snp_markers_intervals are provided)
-        if (params.run_snp) {
-            snp_markers_intervals = file(resolved_snp_intervals, checkIfExists: true)
-            snp_site_vcf = file(resolved_snp_site_vcf, checkIfExists: true)
-            snp_vcf_ch = UNIFIED_GENOTYPER_SNP(
-                ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict,
-                snp_markers_intervals, snp_site_vcf, params.out_dir, params.threads,
-                params.project, params.gatk_java, params.gatk_memory, params.gatk
+            if (params.run_indel) {
+                small_variant_site_paths << file(resolved_indel_site_vcf, checkIfExists: true)
+            }
+            small_variant_sites_ch = Channel.value(small_variant_site_paths)
+            prepared_sites_ch = PREPARE_SNP_INDEL_SITES(
+                small_variant_sites_ch, params.out_dir, params.threads,
+                params.project, params.bcftools
             )
-            snp_indexed_ch = TABIX_SNP(snp_vcf_ch.vcf, params.out_dir, params.threads, params.tabix)
-            snp_format_ch = GATK_SNP_FORMAT(
-                snp_indexed_ch.vcf, snp_indexed_ch.tbi, snp_site_vcf,
-                params.out_dir, params.threads, params.project, params.bcftools,
-                params.assign_id, params.bgzip
+            sample_small_variant_ch = HAPLOTYPE_CALLER_SNP_INDEL(
+                indexed_bam_ch, ref, index_ref_ch.fai, index_ref_ch.dict,
+                prepared_sites_ch.sites_vcf, prepared_sites_ch.sites_vcf_index,
+                params.out_dir, params.threads, params.java, params.gatk_memory,
+                params.gatk, params.gatk_interval_padding, params.tabix
             )
-        }
-        
-        // INDEL genotyping (if indel_site_vcf and indel_markers_intervals are provided)
-        if (params.run_indel) {
-            indel_markers_intervals = file(resolved_indel_intervals, checkIfExists: true)
-            indel_site_vcf = file(resolved_indel_site_vcf, checkIfExists: true)
-            indel_vcf_ch = UNIFIED_GENOTYPER_INDEL(
-                ref, bam_list_ch, index_ref_ch.fai, index_ref_ch.dict,
-                indel_markers_intervals, indel_site_vcf, params.out_dir, params.threads,
-                params.project, params.gatk_java, params.gatk_memory, params.gatk
+            complete_sample_small_variant_ch = FILL_MISSING_SNP_INDEL_SITES(
+                sample_small_variant_ch.vcf,
+                prepared_sites_ch.sites_vcf, prepared_sites_ch.sites_vcf_index,
+                params.out_dir, params.threads, params.bcftools,
+                params.bgzip
             )
-            indel_indexed_ch = TABIX_INDEL(indel_vcf_ch.vcf_gz, params.out_dir, params.threads, params.tabix)
-            indel_format_ch = GATK_INDEL_FORMAT(
-                indel_indexed_ch.vcf_gz, indel_indexed_ch.vcf_gz_index, indel_site_vcf,
-                params.out_dir, params.threads, params.project, params.bcftools,
-                params.assign_id, params.bgzip
+            complete_sample_vcf_list_ch = complete_sample_small_variant_ch.vcf
+                .toSortedList { a, b -> a[0].toString() <=> b[0].toString() }
+                .map { rows -> rows.collectMany { sample_id, vcf, tbi -> [vcf, tbi] } }
+            small_variant_format_ch = MERGE_AND_FORMAT_SNP_INDEL(
+                complete_sample_vcf_list_ch, params.out_dir, params.threads,
+                params.project, params.bcftools, params.bgzip
             )
         }
 
@@ -389,11 +301,9 @@ workflow {
                     )
                 }
             if (params.run_indel) {
-                sv_samples_order_ch = indel_format_ch.samples_order
+                sv_samples_order_ch = small_variant_format_ch.samples_order
             } else if (params.run_snp) {
-                sv_samples_order_ch = EXTRACT_SAMPLES_ORDER(
-                    snp_format_ch.vcf, params.out_dir, params.bcftools
-                ).samples_order
+                sv_samples_order_ch = small_variant_format_ch.samples_order
             } else {
                 first_sv_bcf_ch = sv_genotype_ch.first().map { sample_id, bcf, csi -> bcf }
                 sv_samples_order_ch = EXTRACT_SAMPLES_ORDER(
@@ -408,45 +318,30 @@ workflow {
             )
         }
         
-        // Concatenate all variant types (only if multiple types are enabled)
-        def variant_type_count = [params.run_snp, params.run_indel, params.run_sv].count(true)
-        
-        if (variant_type_count > 1) {
-            // Multiple variant types - need to concatenate
-            if (params.run_snp && params.run_indel && params.run_sv) {
-                // All three types
-                concat_vcf_ch = CONCAT_SNP_INDEL_SV(
-                    snp_format_ch.vcf, snp_format_ch.tbi, indel_format_ch.vcf_gz,
-                    indel_format_ch.vcf_gz_index, sv_merged_ch.vcf_gz,
-                    sv_merged_ch.vcf_gz_index, params.out_dir, params.project, params.bcftools
-                )
-            } else if (params.run_snp && params.run_indel) {
-                // SNP + INDEL
-                concat_vcf_ch = CONCAT_SNP_INDEL(
-                    snp_format_ch.vcf, snp_format_ch.tbi, indel_format_ch.vcf_gz,
-                    indel_format_ch.vcf_gz_index, params.out_dir, params.project, params.bcftools
-                )
-            } else if (params.run_snp && params.run_sv) {
-                // SNP + SV
+        // HaplotypeCaller already emits one SNP+INDEL VCF. Only SV still needs concatenation.
+        if ((params.run_snp || params.run_indel) && params.run_sv) {
+            if (params.run_snp && params.run_indel) {
                 concat_vcf_ch = CONCAT_SNP_SV(
-                    snp_format_ch.vcf, snp_format_ch.tbi, sv_merged_ch.vcf_gz,
+                    small_variant_format_ch.vcf, small_variant_format_ch.tbi,
+                    sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index,
+                    params.out_dir, params.project, params.bcftools
+                )
+            } else if (params.run_snp) {
+                concat_vcf_ch = CONCAT_SNP_SV(
+                    small_variant_format_ch.vcf, small_variant_format_ch.tbi, sv_merged_ch.vcf_gz,
                     sv_merged_ch.vcf_gz_index, params.out_dir, params.project, params.bcftools
                 )
-            } else if (params.run_indel && params.run_sv) {
-                // INDEL + SV
+            } else {
                 concat_vcf_ch = CONCAT_INDEL_SV(
-                    indel_format_ch.vcf_gz, indel_format_ch.vcf_gz_index,
+                    small_variant_format_ch.vcf, small_variant_format_ch.tbi,
                     sv_merged_ch.vcf_gz, sv_merged_ch.vcf_gz_index,
                     params.out_dir, params.project, params.bcftools
                 )
             }
             beagle_input_vcf = concat_vcf_ch.snp_indel_sv_vcf
         } else {
-            // Single variant type - no concatenation needed
-            if (params.run_snp) {
-                beagle_input_vcf = snp_format_ch.vcf
-            } else if (params.run_indel) {
-                beagle_input_vcf = indel_format_ch.vcf_gz
+            if (params.run_snp || params.run_indel) {
+                beagle_input_vcf = small_variant_format_ch.vcf
             } else if (params.run_sv) {
                 beagle_input_vcf = sv_merged_ch.vcf_gz
             }
