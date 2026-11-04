@@ -1,4 +1,6 @@
-> **International users · Manual installation.** Switch to [Docker](README.md) · [中国大陆 · Docker](README.cn.docker.md) · [中国大陆 · 手动安装](README.cn.manual.md)
+> **English** | [中文](README.cn.manual.md)
+>
+> [Docker install](README.md) | **Local install** | [中国大陆-Docker install](README.cn.docker.md) | [中国大陆-Local install](README.cn.manual.md)
 
 # VarsGT
 
