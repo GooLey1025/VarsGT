@@ -14,8 +14,6 @@
 docker pull goley04/varsgt:latest
 ```
 
-The image entrypoint is Nextflow. Mount the working directory at `/data` and pass Nextflow arguments, including `run /opt/varsgt/main.nf`.
-
 ## Graph pangenome index
 
 The graph index was built from 42 rice genomes and is about 1.5 GB. Download it into the directory you will mount into the container.

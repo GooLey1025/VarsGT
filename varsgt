@@ -7,27 +7,55 @@ Usage:
   ./varsgt --fq-dir-glob GLOB --index-dir DIR [options]
 
 Required:
-  --fq-dir-glob GLOB       Paired FASTQ glob, e.g. /data/reads/*.read{1,2}.fastq.gz
-  --index-dir DIR          Giraffe graph index, e.g. /data/Nip_42_rice_Index
+  --fq-dir-glob GLOB                 Paired FASTQ glob, e.g. /data/reads/*.read{1,2}.fastq.gz
+  --index-dir DIR                    Giraffe graph index, e.g. /data/Nip_42_rice_Index
 
-Common options:
-  --panel-dir DIR          Genotyping panel. SNP/INDEL/SV sites, intervals, and
-                           the Beagle reference panel are read from here.
-                           Defaults to --index-dir.
+Input and output:
+  --panel-dir DIR                    Genotyping panel. SNP/INDEL/SV sites, intervals, and
+                                     the Beagle reference panel are read from here.
+                                     Defaults to --index-dir.
+  --project NAME                     Project name (default: varsgt)
+  --out-dir DIR                      Output directory (default: ./varsgt_out)
+  --work-dir DIR                     Nextflow work directory (default: ./work)
+  -w DIR                             Alias for --work-dir
+  -resume [RUN]                      Resume cached Nextflow tasks. RUN may be a run name,
+                                     session ID, or "last" (default when omitted)
+  --resume                           Backward-compatible alias for -resume
+  --validate-only                    Validate inputs and tools, then exit
+  --help                             Show this help
 
-  --project NAME           Project name (default: varsgt)
-  --out-dir DIR            Output directory (default: ./varsgt_out)
-  --work-dir DIR           Nextflow work directory (default: ./work)
-  -w DIR                   Alias for --work-dir
-  -resume [RUN]           Resume cached Nextflow tasks. RUN may be a run name,
-                          session ID, or "last" (default when omitted)
-  --resume                Backward-compatible alias for -resume
-  --validate-only          Validate inputs and tools, then exit
-  --help                   Show this help
+Tool paths:
+  --gatk-path JAR                    GATK 4.6.2 local jar, gatk-package-4.6.2.0-local.jar
+  --picard-path JAR                  Picard jar (default: softwares/picard.jar)
+  --beagle-path JAR                  Beagle jar (default: softwares/beagle.27Feb25.75f.jar)
+  --java-path BIN                    Java executable for GATK, Picard, and Beagle (default: java)
+  --vg-path BIN                      vg v1.71.0 executable (default: vg)
+  --delly-path BIN                   delly executable (default: delly)
+  --kmc-path BIN                     kmc executable (default: kmc)
+  --bcftools-path BIN                bcftools executable (default: bcftools)
+  --samtools-path BIN                samtools executable (default: samtools)
+  --bgzip-path BIN                   bgzip executable (default: bgzip)
+  --tabix-path BIN                   tabix executable (default: tabix)
+  --python-path BIN                  python3 executable (default: python3)
 
-Advanced options can be passed to Nextflow with --param value, for example:
-  --giraffe-mapping-cpus-per-task 24
-  --vg-path /absolute/path/to/vg   Use vg v1.71.0+ for format-v6 .hapl indexes
+Resources:
+  --threads N                        Shared thread count (default: 48)
+  --gatk-memory SIZE                 GATK Java memory (default: 100g)
+  --gatk-interval-padding N          GATK interval padding in bp (default: 100)
+  --mark-duplicates true|false       Mark duplicates in the BAM (default: true)
+  --kmc-max-parallel-number N        Maximum concurrent KMC tasks (default: 10)
+  --kmc-cpus-per-task N              CPUs per KMC task (default: 14)
+  --kmc-memory-per-task SIZE         Memory per KMC task (default: 28 GB)
+  --bam-per-task-threads N           CPUs per BAM task (default: 4)
+  --bam-per-task-memory SIZE         Memory per BAM task (default: 8 GB)
+  --bam-max-parallel-num N           Maximum concurrent BAM tasks (default: 4)
+  --giraffe-mapping-cpus-per-task N  CPUs per Giraffe task (default: 20)
+  --giraffe-mapping-memory-per-task SIZE
+                                     Memory per Giraffe task (default: 30 GB)
+  --giraffe-mapping-parallel-number N
+                                     Maximum concurrent Giraffe tasks (default: 4)
+  --beagle-cpus N                    CPUs for Beagle (default: 32)
+  --beagle-memory SIZE               Memory for Beagle (default: 100 GB)
 EOF
 }
 

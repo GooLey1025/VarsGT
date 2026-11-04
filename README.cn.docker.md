@@ -16,7 +16,7 @@
 docker pull ccr.ccs.tencentyun.com/goley04/varsgt:latest
 ```
 
-镜像入口是 Nextflow。把工作目录挂载到 `/data`，并传入 Nextflow 参数，其中包括 `run /opt/varsgt/main.nf`。运行时使用镜像名 `ccr.ccs.tencentyun.com/goley04/varsgt:latest`。
+运行时使用镜像名 `ccr.ccs.tencentyun.com/goley04/varsgt:latest`。
 
 ## 图泛基因组索引
 

@@ -22,23 +22,24 @@ java -version
 curl -s https://get.nextflow.io | bash
 ```
 
-在本目录下载流程要用的 JAR：
-
-```sh
-mkdir -p softwares
-wget -c -P softwares https://zenodo.org/records/19529002/files/picard.jar
-wget -c -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar
-```
+Picard 和 Beagle 已经放在 `softwares/` 中。
 
 安装下列软件，并保证可执行文件在 `PATH` 中：
 
-- [vg](https://github.com/vgteam/vg) v1.71.0 或更新版本
+- [vg](https://github.com/vgteam/vg) v1.71.0
 - [delly](https://github.com/dellytools/delly)（已测试 v1.7.2）
 - [kmc](https://github.com/refresh-bio/KMC)
 - [bcftools](https://github.com/samtools/bcftools)
 - [samtools](https://github.com/samtools/samtools)、`bgzip` 和 `tabix`
 
-单独下载 GATK 4.6.2，运行 `./varsgt` 时用 `--gatk-path` 指向其中的 `gatk-package-4.6.2.0-local.jar`。
+GATK 4.6.2 的 jar 体积很大，没有放进本仓库，需要单独下载：
+
+```sh
+mkdir -p software
+wget  -O software/gatk-package-4.6.2.0-local.jar
+```
+
+运行 `./varsgt` 时用 `--gatk-path software/gatk-package-4.6.2.0-local.jar` 指向该文件。
 
 ## 图泛基因组索引
 
@@ -73,7 +74,7 @@ unzip test_fq.zip -d test_fq
   --fq-dir-glob "test_fq/*.reads{1,2}.fastq.gz" \
   --index-dir Nip-42rice_GraphPangenome_Index \
   --panel-dir cohort_panel_index/rice655_index \
-  --gatk-path /path/to/gatk-package-4.6.2.0-local.jar \
+  --gatk-path software/gatk-package-4.6.2.0-local.jar \
   --project test_rice655-ref \
   --out-dir test_rice655-ref_out \
   -resume
@@ -88,7 +89,7 @@ unzip test_fq.zip -d test_fq
   --fq-dir-glob "/data/reads/*.read{1,2}.fastq.gz" \
   --index-dir "/data/Nip-42rice_GraphPangenome_Index" \
   --panel-dir "/data/cohort_panel_index/rice655_index" \
-  --gatk-path /path/to/gatk-package-4.6.2.0-local.jar \
+  --gatk-path software/gatk-package-4.6.2.0-local.jar \
   --project rice655_task \
   --out-dir /results/rice655_task \
   -resume

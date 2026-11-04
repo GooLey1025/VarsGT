@@ -22,23 +22,24 @@ Install Nextflow and put the binary on `PATH`:
 curl -s https://get.nextflow.io | bash
 ```
 
-From this directory, download the JAR files used by the workflow:
-
-```sh
-mkdir -p softwares
-wget -c -P softwares https://zenodo.org/records/19529002/files/picard.jar
-wget -c -P softwares https://zenodo.org/records/19529002/files/beagle.27Feb25.75f.jar
-```
+Picard and Beagle are already in `softwares/`.
 
 Install these tools and make sure each executable is on `PATH`:
 
-- [vg](https://github.com/vgteam/vg) v1.71.0 or newer
+- [vg](https://github.com/vgteam/vg) v1.71.0
 - [delly](https://github.com/dellytools/delly) (v1.7.2 has been tested)
 - [kmc](https://github.com/refresh-bio/KMC)
 - [bcftools](https://github.com/samtools/bcftools)
 - [samtools](https://github.com/samtools/samtools), `bgzip`, and `tabix`
 
-Download GATK 4.6.2 separately. Pass its `gatk-package-4.6.2.0-local.jar` to `./varsgt` with `--gatk-path`.
+Download the GATK 4.6.2 jar. It is large and is not included in this repository:
+
+```sh
+mkdir -p software
+wget  -O software/gatk-package-4.6.2.0-local.jar
+```
+
+Pass that jar to `./varsgt` with `--gatk-path software/gatk-package-4.6.2.0-local.jar`.
 
 ## Graph pangenome index
 
@@ -73,7 +74,7 @@ unzip test_fq.zip -d test_fq
   --fq-dir-glob "test_fq/*.reads{1,2}.fastq.gz" \
   --index-dir Nip-42rice_GraphPangenome_Index \
   --panel-dir cohort_panel_index/rice655_index \
-  --gatk-path /path/to/gatk-package-4.6.2.0-local.jar \
+  --gatk-path software/gatk-package-4.6.2.0-local.jar \
   --project test_rice655-ref \
   --out-dir test_rice655-ref_out \
   -resume
@@ -88,7 +89,7 @@ unzip test_fq.zip -d test_fq
   --fq-dir-glob "/data/reads/*.read{1,2}.fastq.gz" \
   --index-dir "/data/Nip-42rice_GraphPangenome_Index" \
   --panel-dir "/data/cohort_panel_index/rice655_index" \
-  --gatk-path /path/to/gatk-package-4.6.2.0-local.jar \
+  --gatk-path software/gatk-package-4.6.2.0-local.jar \
   --project rice655_task \
   --out-dir /results/rice655_task \
   -resume
