@@ -50,7 +50,7 @@ params.bam_max_parallel_num = 4
 params.mark_duplicates = true
 params.giraffe_mapping_memory_per_task = "30 GB"
 params.giraffe_mapping_cpus_per_task = 20
-params.giraffe_mapping_parallel_number = 8
+params.giraffe_mapping_parallel_number = 4
 params.beagle_memory = "100 GB"
 params.beagle_cpus = 32
 

@@ -1,0 +1,9 @@
+metric	value
+build_time	2026-10-12T15:04:08+08:00
+source_panel	/data3/home/gulei/projects/GraphPan/Multi_Source_Marker_Panel_generation/655rice.wg_ld_r2_scan/final_panels/r2_0.035
+snp_sites	7884
+indel_sites	2204
+sv_sites	651
+total_sites	10739
+samples	655
+backup_dir	/data4/gulei/projects/Aquila-GS/breeding_application/VarsGT/Rice655_VarsGT_Index/backup_20261012_150354.2995970

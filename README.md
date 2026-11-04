@@ -1,170 +1,91 @@
-**VarsGT** (**Var**iants **G**eno**T**yping) is a workflow designed for generating high-quality VCF files from second-generation sequencing (NGS) reads. By integrating allele-based genotyping strategies, it enables accurate detection and representation of SNPs, INDELs, and structural variants (SVs), thereby providing a comprehensive variant landscape for genomic selection.
+> **International users · Docker.** Switch to [Manual installation](README.manual.md) · [中国大陆 · Docker](README.cn.docker.md) · [中国大陆 · 手动安装](README.cn.manual.md)
 
-VarsGT is currently built upon marker panels derived from two rice populations, namely the inbred rice population (705 accessions) and the hybrid rice population (1,171 accessions).
+# VarsGT
 
-## Installation
+**VarsGT** (**Var**iants **G**eno**T**yping) genotypes second-generation sequencing (NGS) reads against a predefined variant panel. Panels include the rice marker sets released with this repository and custom panels supplied by the user. Allele-based genotyping calls SNPs, INDELs, and structural variants (SVs) at sites in the selected panel and writes a standardized VCF for downstream analysis, particularly genomic selection on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets) we provide.
 
-### Recommended: use the VarsGT image
+# Installation
 
-The image contains Nextflow, Java 17, a separate Java 8 runtime for GATK 3.7, and all command-line and Java-based workflow dependencies.
+## Docker image
 
 ```bash
 docker pull goley04/varsgt:latest
 ```
 
-The image does not contain FASTQ data or the large rice index packages. The simplest approach is to run from a directory containing `reads/` and the downloaded index directory, and mount the current directory once:
+The image entrypoint is Nextflow. Mount the working directory at `/data` and pass Nextflow arguments, including `run /opt/varsgt/main.nf`.
 
-```bash
+## Graph pangenome index
+
+The graph index was built from 42 rice genomes and is about 1.5 GB. Download it into the directory you will mount into the container.
+
+```sh
+wget https://zenodo.org/records/23924551/files/Nip-42rice_GraphPangenome_Index.zip?download=1 -O Nip-42rice_GraphPangenome_Index.zip
+unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
+```
+
+## Rice cohort marker panels
+
+Three cohort panels are provided. Choose the panel that matches the material you are genotyping. The panel files are under `cohort_panel_index/`.
+
+**Rice655.** Inbred panel. The marker set is an MSMP (Multi-Source Marker Panel): trait-associated lead variants, genome-wide lead variants, GWAS lead variants, and RiceNavi QTN variants. It supports QTN breeding recommendations and is intended for homozygous inbred materials.
+
+**Rice3305.** Large inbred panel. The marker set contains genome-wide lead variants only. It does not include QTN markers, so breeding recommendations are not available. This cohort has large-scale phenotype data from multiple populations and multiple environments.
+
+**Rice1171.** Hybrid panel for hybrid rice breeding. It uses the same MSMP as Rice655.
+
+Traits that the released [Aquila genomic selection models](https://github.com/GooLey1025/Aquila-GS) can predict for these panels are listed on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets).
+
+# Quick test
+
+Run this from the VarsGT directory after the index download above. The test reads FASTQ files from `test_fq/` and writes results to `test_rice655-ref_out`. It genotypes the Rice655 panel and takes about 15 minutes.
+
+```sh
+wget https://zenodo.org/records/23924551/files/test_fq.zip?download=1 -O test_fq.zip
+unzip test_fq.zip -d test_fq
+
+docker run --rm \
+  -v "${PWD}:/data" \
+  -w /data \
+  goley04/varsgt:latest \
+  run /opt/varsgt/main.nf \
+  --fq_dir_glob "test_fq/*.reads{1,2}.fastq.gz" \
+  --index_dir Nip-42rice_GraphPangenome_Index \
+  --panel_dir cohort_panel_index/rice655_index \
+  --project test_rice655-ref \
+  --out_dir test_rice655-ref_out \
+  -work-dir work \
+  -resume
+```
+
+# Usage
+
+Paths inside `--fq_dir_glob`, `--index_dir`, `--panel_dir`, `--out_dir`, and `-work-dir` are resolved in the container. With `-v "${PWD}:/data"` and `-w /data`, a relative path is a path in the mounted directory.
+
+```sh
 docker run --rm \
   -v "${PWD}:/data" \
   -w /data \
   goley04/varsgt:latest \
   run /opt/varsgt/main.nf \
   --fq_dir_glob "/data/reads/*.read{1,2}.fastq.gz" \
-  --index_dir /data/Nip_42_rice_Index \
-  --panel_dir /data/Rice655_VarsGT_index \
-  --project Rice655_task \
-  --out_dir /data/Rice655_task_out \
+  --index_dir /data/Nip-42rice_GraphPangenome_Index \
+  --panel_dir /data/cohort_panel_index/rice655_index \
+  --project rice655_task \
+  --out_dir /data/results/rice655_task \
   -work-dir /data/work \
   -resume
 ```
 
-### Manual installation
+`-resume` is Nextflow's native option. With no value it resumes the most recent compatible execution. A run name or session ID can also be given, for example `-resume last`, `-resume determined_borg`, or `-resume 4dc3bb0e-...`.
 
-Manual installation remains supported for systems where Docker is unavailable. It requires separate Java 17 and Java 8 runtimes plus the native bioinformatics tools. Follow the complete [manual installation guide](docs/INSTALL.md).
+`--index_dir` is the Giraffe graph. It must contain `Nip_42_rice.gbz`, `Nip_42_rice.hapl`, `Nip.chrnum.sorted.fa`, exactly one `*.graph_prefix.txt`, and exactly one `*.ref_order.txt`. `--panel_dir` is the genotyping panel, such as `cohort_panel_index/rice655_index`. It must contain exactly one `*.ref_panel.vcf.gz`, plus the site files for the variant types to call: `*.snp.sites.vcf`, `*.indel.sites.vcf`, and at most one SV sites file (`*.sv.sites.bcf`, `*.delly.sv.sites.bcf`, or the matching VCF name). When `--panel_dir` is omitted, those panel files are read from `--index_dir`. Keep `--index_dir` on the same path so a finished Giraffe mapping can be reused.
 
-### Required index files for graph pangenome-based genotyping
+Switch `--panel_dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index` to genotype the other released panels against the same graph index.
 
-For **Inbred line 705 rice accessions**
+## Build a genotyping panel
 
-```sh
-wget --content-disposition https://ndownloader.figshare.com/files/63989131
-unzip Rice655_VarsGT_index.zip
-```
+A genotyping panel is the directory passed to `--panel_dir`. It holds the SNP, INDEL, and SV sites VarsGT calls, the marker intervals, and the Beagle reference VCF used to impute the final genotypes. The Giraffe graph and the Nipponbare FASTA stay in `--index_dir` and are not rebuilt with the panel.
 
-For **Hybrid line 1171 rice accessions**
+Rice655, Rice3305, and Rice1171 panels are already in `cohort_panel_index/`. To build a panel from your own final marker VCFs, follow [Build a VarsGT genotyping marker panel](docs/make_ref.md).
 
-```sh
-wget --content-disposition https://ndownloader.figshare.com/files/63989128
-unzip Rice1171_VarsGT_index.zip
-```
-
-## Quick test
-
-This will read test data from `test_fq/` and output final relevant files in `test/`.
-
-```sh
-# First download test_fq file
-wget --content-disposition -P test_fq https://ndownloader.figshare.com//files/64029223
-wget --content-disposition -P test_fq https://ndownloader.figshare.com//files/64029220
-# Demonstrating batch processing: VarsGT can handle all .fastq.gz files in a directory.
-cp test_fq/sample1.reads1.fastq.gz test_fq/sample2.reads1.fastq.gz
-cp test_fq/sample1.reads2.fastq.gz test_fq/sample2.reads2.fastq.gz
-# Quick Test
-./varsgt \
-  --fq-dir-glob "test_fq/*.reads{1,2}.fastq.gz" \
-  --index-dir 705rice_VarsGT_index \
-  --project test \
-  --out-dir test
-```
-
-The test will take about 15 minutes to run.
-
-## Usage Case
-
-### CLI usage
-
-The main entry point is:
-
-```sh
-./varsgt \
-  --fq-dir-glob "/data/reads/*.read{1,2}.fastq.gz" \
-  --index-dir "/data/Nip_42_rice_Index" \
-  --panel-dir "/data/705rice_VarsGT_index" \
-  --project 705rice_task \
-  --out-dir /results/705rice_task \
-  -resume
-```
-
-`-resume` follows Nextflow's native syntax. With no value it resumes the most
-recent compatible execution. A Nextflow run name or session ID can also be
-specified, for example `-resume last`, `-resume determined_borg`, or
-`-resume 4dc3bb0e-...`. The older `--resume` spelling remains supported.
-
-The index directory must contain exactly one `*.sv.sites.tsv`,
-`*.sv.sites.vcf`, or `*.sv.sites.txt` file. VarsGT matches its columns 1, 2, 4,
-and 5 as `CHROM`, `POS`, `REF`, and `ALT`; header and comment lines are ignored.
-ALT must already be biallelic.
-
-`--index-dir` is the Giraffe graph. It supplies `Nip_42_rice.gbz`,
-`Nip_42_rice.hapl`, `Nip_42_rice.ref_order.txt`, `Nip_42_rice.graph_prefix.txt`,
-and `Nip.chrnum.sorted.fa`. `--panel-dir` is the genotyping panel. It supplies
-the SNP, INDEL, and SV site files, marker intervals, and `*.ref_panel.vcf.gz`.
-When `--panel-dir` is omitted, both sets of files are read from `--index-dir`.
-Keep `--index-dir` on the same path to reuse a finished Giraffe mapping.
-
-### Rebuild a genotyping panel
-
-`main.make_ref.sh` rebuilds the SNP, INDEL, SV, and Beagle files in `--panel-dir` from a final marker panel. SV sites are filled from `DELLY_RAW_VCFS`, the original DELLY callsets that still carry the INFO records `delly call` needs. The default command builds the Rice1171 `r2=0.02` panel into `Rice1171_VarsGT_Index`. Giraffe graph files and the Nipponbare FASTA stay in place.
-
-Inputs, the Rice1171 defaults, and the settings for another panel such as Rice655 are documented in [Rebuild a VarsGT reference panel](docs/make_ref.md).
-
-## `vcf_filter_impute.nf`
-
-This standalone workflow is **Path C** for rice users who already have a whole-genome VCF, whether it contains a population or only a few samples. It validates the input VCF, compares its variant sites with a downloaded VarsGT reference panel, optionally retains only sites that match the selected panel, and then runs Beagle to impute missing genotypes. After imputation, the workflow assigns each output record the corresponding marker ID from the selected reference panel using an exact `CHROM/POS/REF/ALT` match. The final output is a biallelic VCF containing the marker sites defined by the selected rice reference panel, with missing genotypes imputed and marker IDs populated from that panel.
-
-### Input requirements
-
-- The input VCF must be aligned to the Nipponbare reference genome.
-- The `CHROM` column must contain only the numbers `1` through `12`. Values such as `chr1`, `Chr1`, or other chromosome prefixes are rejected.
-- Input data are assumed to be biallelic by default. For a multiallelic VCF, add `--biallelic true`; the workflow will first run `bcftools norm -m -any`.
-- The reference panel must be a compressed VCF supported by Beagle, such as the `705rice`, `3485rice`, or `1171rice` panel downloaded with the corresponding VarsGT index package.
-
-### Match rate and filtering
-
-Before Beagle imputation, the workflow compares unique sites using the complete `CHROM`, `POS`, `REF`, and `ALT` fields. The match rate is reported as:
-
-```text
-matched reference-panel sites / all unique reference-panel sites
-```
-
-The result is written to `<project>.match_report.tsv`. A rate below 80% is reported as `LOW_MATCH_RATE`; 80% is an empirical threshold from our experience and may not be appropriate for every population. A low rate means downstream phenotype prediction with a selected model may be inaccurate.
-
-By default, the complete normalized input VCF is passed to Beagle. Add `--filter_first true` to pass only input records that exactly match sites in the selected reference panel. This option reduces the number of genotype records processed by Beagle and can substantially speed up imputation, especially for large whole-genome VCFs. However, removing non-matching input sites may reduce accuracy if those sites contain informative genotype signals. Use this option when faster processing is important, and interpret the results with caution when the match rate is low.
-
-### Run
-
-Install Nextflow, Java, `bcftools`, `bgzip`, and `tabix`, and provide the Beagle JAR from the VarsGT software package. The reference panel path is the panel in the index directory you downloaded for the population of interest:
-
-```bash
-nextflow run vcf_filter_impute.nf \
-  --input_vcf /path/to/whole_genome.vcf.gz \
-  --ref_impute_panel_vcf_path /path/to/705rice_VarsGT_index/705rice_0.03.full.all.impute.vcf.gz \
-  --beagle_path ./softwares/beagle.27Feb25.75f.jar \
-  --out_dir vcf_filter_impute_out \
-  --project my_rice_samples \
-  -resume
-```
-
-For multiallelic input and optional pre-filtering:
-
-```bash
-nextflow run vcf_filter_impute.nf \
-  --input_vcf /path/to/whole_genome.multiallelic.vcf.gz \
-  --ref_impute_panel_vcf_path /path/to/1171rice_VarsGT_index/1171rice_0.02.full.all.impute.vcf.gz \
-  --beagle_path ./softwares/beagle.27Feb25.75f.jar \
-  --biallelic true \
-  --filter_first true \
-  --out_dir vcf_filter_impute_out \
-  -resume
-```
-
-The main outputs are `<project>.impute.biallelic.vcf.gz`, its tabix index, and the match-rate report. The final VCF is produced by a separate ID-annotation step that copies marker IDs from the selected reference panel based on exact `CHROM/POS/REF/ALT` matches. Use the imputed VCF as input to the platform's Trait Predictor.
-
-### Important limitations and recommended use
-
-Path C is intended as a practical, resource-saving option for breeders who already have a whole-genome VCF, especially when re-genotyping a large population from raw reads with VarsGT would require substantial computational resources. It projects the existing VCF onto a supplied rice panel and is therefore a convenient approximation, not a replacement for population-specific genotyping.
-
-The selected panel and model may not fully represent your breeding population. Differences in population structure, plant materials, variant-calling methods, sequencing depth, and other technical factors can introduce genotype discrepancies and prediction bias. Consequently, a successful imputation and a high site match rate do not guarantee that the selected panel model is well calibrated for your population. The 80% match-rate threshold is an empirical warning threshold, not an accuracy guarantee.
-
-For higher accuracy, we recommend training a model with your own population and phenotype data rather than relying only on a model trained on a provided reference population. When resources and raw reads are available, the most rigorous option is to run the complete VarsGT genotyping workflow from raw reads and then train or validate a population-specific model.
+Users who already have a whole-genome VCF can project it onto a released panel with [`vcf_filter_impute.nf`](README.VCF_FILTER_IMPUTE.md).
