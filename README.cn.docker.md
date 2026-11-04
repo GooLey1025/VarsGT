@@ -4,7 +4,7 @@
 
 # VarsGT
 
-**VarsGT**（**Var**iants **G**eno**T**yping）用于把二代测序（NGS）reads 比对到预先定义的变异面板上并完成基因分型。面板可以是本仓库发布的水稻标记面板，也可以是用户自己的面板。流程按等位基因对面板中的 SNP、INDEL 和结构变异（SV）进行分型，并输出标准化 VCF，供下游分析使用，尤其是我们提供的 [RiceGPlex 网站](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets)上的基因组选择。
+**VarsGT**（**Var**iants **G**eno**T**yping）用于把二代测序（NGS）reads 比对到预先定义的变异面板上并完成基因分型。面板可以是本仓库发布的水稻标记面板，也可以是用户自己的面板。流程按等位基因对面板中的 SNP、INDEL 和结构变异（SV）进行分型，并输出标准化 VCF，供下游分析使用，尤其是我们提供的 [RiceGPlex 网站](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets)上的基因组选择模型。
 
 # 安装
 
@@ -80,16 +80,16 @@ docker run --rm \
   -resume
 ```
 
-`-resume` 沿用 Nextflow 的写法。不带值时，会恢复最近一次兼容的运行。也可以指定运行名或 session ID，例如 `-resume last`、`-resume determined_borg` 或 `-resume 4dc3bb0e-...`。
+- `--fq_dir_glob` 是双端 FASTQ 的匹配模式，例如 `/data/reads/*.read{1,2}.fastq.gz`。
+- `--index_dir` 是 Giraffe 图索引，必须包含 `Nip_42_rice.gbz`、`Nip_42_rice.hapl`、`Nip.chrnum.sorted.fa`，以及恰好一个 `*.graph_prefix.txt` 和一个 `*.ref_order.txt`。
+- `--panel_dir` 是分型面板，例如 `cohort_panel_index/rice655_index`。其中必须有恰好一个 `*.ref_panel.vcf.gz`、SNP 和 INDEL 位点文件（`*.snp.sites.vcf`、`*.indel.sites.vcf`），以及 `*.delly.sv.sites.bcf`。
+- `--project` 是写入结果的项目名。
+- `--out_dir` 是最终文件的输出目录。
+- `-work-dir` 是 Nextflow 的工作目录。
+- `-resume` 用于恢复上一次 Nextflow 运行。传入同一个缓存名即可复用该次运行，也可以传入运行名或 session ID，例如 `-resume last` 或 `-resume 4dc3bb0e-...`。中断的运行也用它继续。
 
-`--index_dir` 是 Giraffe 图索引，必须包含 `Nip_42_rice.gbz`、`Nip_42_rice.hapl`、`Nip.chrnum.sorted.fa`，以及恰好一个 `*.graph_prefix.txt` 和一个 `*.ref_order.txt`。`--panel_dir` 是分型面板，例如 `cohort_panel_index/rice655_index`。其中必须有恰好一个 `*.ref_panel.vcf.gz`，以及要调用的变异类型对应的位点文件：`*.snp.sites.vcf`、`*.indel.sites.vcf`，SV 位点文件最多一个（`*.sv.sites.bcf`、`*.delly.sv.sites.bcf`，或对应的 VCF 文件名）。省略 `--panel_dir` 时，这些面板文件从 `--index_dir` 读取。Giraffe 比对完成后，请保持 `--index_dir` 路径不变，以便复用已有比对结果。
-
-把 `--panel_dir` 换成 `cohort_panel_index/rice3305_index` 或 `cohort_panel_index/rice1171_index`，即可用同一套图索引对另外两个已发布面板分型。
+同一套 reads 只需更换 `--panel_dir`，例如换成 `cohort_panel_index/rice3305_index` 或 `cohort_panel_index/rice1171_index`，并用 `-resume` 指向同一个 mapping cache。流程会直接在对应面板上分型，不再重复比对 reads。
 
 ## 构建分型面板
 
-分型面板就是传给 `--panel_dir` 的目录。里面是 VarsGT 要调用的 SNP、INDEL 和 SV 位点、标记区间，以及用于填补最终基因型的 Beagle 参考 VCF。Giraffe 图索引和日本晴参考序列留在 `--index_dir`，构建面板时不会改动它们。
-
 Rice655、Rice3305 和 Rice1171 面板已经放在 `cohort_panel_index/`。若要从自己的最终标记 VCF 构建面板，见[构建 VarsGT 分型标记面板](docs/make_ref.md)。
-
-已有全基因组 VCF 时，可以用 [`vcf_filter_impute.nf`](README.VCF_FILTER_IMPUTE.md) 把它投影到已发布面板上。

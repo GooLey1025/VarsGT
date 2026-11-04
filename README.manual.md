@@ -4,7 +4,7 @@
 
 # VarsGT
 
-**VarsGT** (**Var**iants **G**eno**T**yping) genotypes second-generation sequencing (NGS) reads against a predefined variant panel. Panels include the rice marker sets released with this repository and custom panels supplied by the user. Allele-based genotyping calls SNPs, INDELs, and structural variants (SVs) at sites in the selected panel and writes a standardized VCF for downstream analysis, particularly genomic selection on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets) we provide.
+**VarsGT** (**Var**iants **G**eno**T**yping) genotypes second-generation sequencing (NGS) reads against a predefined variant panel. Panels include the rice marker sets released with this repository and custom panels supplied by the user. Allele-based genotyping calls SNPs, INDELs, and structural variants (SVs) at sites in the selected panel and writes a standardized VCF for downstream analysis, particularly genomic selection models on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets) we provide.
 
 # Installation
 
@@ -94,16 +94,16 @@ unzip test_fq.zip -d test_fq
   -resume
 ```
 
-`-resume` is Nextflow's native option. With no value it resumes the most recent compatible execution. A run name or session ID can also be given, for example `-resume last`, `-resume determined_borg`, or `-resume 4dc3bb0e-...`. `--resume` is still accepted.
+- `--fq-dir-glob` is the paired FASTQ glob, for example `/data/reads/*.read{1,2}.fastq.gz`.
+- `--index-dir` is the Giraffe graph. It must contain `Nip_42_rice.gbz`, `Nip_42_rice.hapl`, `Nip.chrnum.sorted.fa`, exactly one `*.graph_prefix.txt`, and exactly one `*.ref_order.txt`.
+- `--panel-dir` is the genotyping panel, such as `cohort_panel_index/rice655_index`. It must contain exactly one `*.ref_panel.vcf.gz`, the SNP and INDEL site files (`*.snp.sites.vcf`, `*.indel.sites.vcf`), and `*.delly.sv.sites.bcf`.
+- `--gatk-path` is the GATK 4.6.2 jar, `gatk-package-4.6.2.0-local.jar`.
+- `--project` is the project name written into the output.
+- `--out-dir` is the directory for the final files.
+- `-resume` resumes a previous Nextflow run. Give it the same cache name to reuse that run. A run name or session ID also works, for example `-resume last` or `-resume 4dc3bb0e-...`. `--resume` is still accepted. This is also how an interrupted run is continued.
 
-`--index-dir` is the Giraffe graph. It must contain `Nip_42_rice.gbz`, `Nip_42_rice.hapl`, `Nip.chrnum.sorted.fa`, exactly one `*.graph_prefix.txt`, and exactly one `*.ref_order.txt`. `--panel-dir` is the genotyping panel, such as `cohort_panel_index/rice655_index`. It must contain exactly one `*.ref_panel.vcf.gz`, plus the site files for the variant types to call: `*.snp.sites.vcf`, `*.indel.sites.vcf`, and at most one SV sites file (`*.sv.sites.bcf`, `*.delly.sv.sites.bcf`, or the matching VCF name). When `--panel-dir` is omitted, those panel files are read from `--index-dir`. Keep `--index-dir` on the same path so a finished Giraffe mapping can be reused.
-
-Switch `--panel-dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index` to genotype the other released panels against the same graph index.
+For the same reads, change only `--panel-dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index`, and pass `-resume` with the same mapping cache. The workflow then genotypes that panel directly and does not map the reads again.
 
 ## Build a genotyping panel
 
-A genotyping panel is the directory passed to `--panel-dir`. It holds the SNP, INDEL, and SV sites VarsGT calls, the marker intervals, and the Beagle reference VCF used to impute the final genotypes. The Giraffe graph and the Nipponbare FASTA stay in `--index-dir` and are not rebuilt with the panel.
-
 Rice655, Rice3305, and Rice1171 panels are already in `cohort_panel_index/`. To build a panel from your own final marker VCFs, follow [Build a VarsGT genotyping marker panel](docs/make_ref.md).
-
-Users who already have a whole-genome VCF can project it onto a released panel with [`vcf_filter_impute.nf`](README.VCF_FILTER_IMPUTE.md).

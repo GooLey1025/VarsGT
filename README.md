@@ -4,7 +4,7 @@
 
 # VarsGT
 
-**VarsGT** (**Var**iants **G**eno**T**yping) genotypes second-generation sequencing (NGS) reads against a predefined variant panel. Panels include the rice marker sets released with this repository and custom panels supplied by the user. Allele-based genotyping calls SNPs, INDELs, and structural variants (SVs) at sites in the selected panel and writes a standardized VCF for downstream analysis, particularly genomic selection on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets) we provide.
+**VarsGT** (**Var**iants **G**eno**T**yping) genotypes second-generation sequencing (NGS) reads against a predefined variant panel. Panels include the rice marker sets released with this repository and custom panels supplied by the user. Allele-based genotyping calls SNPs, INDELs, and structural variants (SVs) at sites in the selected panel and writes a standardized VCF for downstream analysis, particularly genomic selection models on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets) we provide.
 
 # Installation
 
@@ -29,13 +29,13 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 
 Three cohort panels are provided. Choose the panel that matches the material you are genotyping. The panel files are under `cohort_panel_index/`.
 
-**Rice655.** Inbred panel. The marker set is an MSMP (Multi-Source Marker Panel): trait-associated lead variants, genome-wide lead variants, GWAS lead variants, and RiceNavi QTN variants. It supports QTN breeding recommendations and is intended for homozygous inbred materials.
+- **Rice655.** Inbred panel. The marker set is an MSMP (Multi-Source Marker Panel): trait-associated lead variants, genome-wide lead variants, GWAS lead variants, and RiceNavi QTN variants. It supports QTN breeding recommendations and is intended for homozygous inbred materials.
 
-**Rice3305.** Large inbred panel. The marker set contains genome-wide lead variants only. It does not include QTN markers, so breeding recommendations are not available. This cohort has large-scale phenotype data from multiple populations and multiple environments.
+- **Rice3305.** Large inbred panel. The marker set contains genome-wide lead variants only. It does not include QTN markers, so breeding recommendations are not available. This cohort has large-scale phenotype data from multiple populations and multiple environments.
 
-**Rice1171.** Hybrid panel for hybrid rice breeding. It uses the same MSMP as Rice655.
+- **Rice1171.** Hybrid panel for hybrid rice breeding. It uses the same MSMP as Rice655.
 
-Traits that the released [Aquila genomic selection models](https://github.com/GooLey1025/Aquila-GS) can predict for these panels are listed on the [RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets).
+Traits that the released [Aquila genomic selection models](https://github.com/GooLey1025/Aquila-GS) can predict for these panels are listed on the [Datasets page of RiceGPlex website](https://www.xhhuanglab.cn/tool/ricegplex/#/datasets).
 
 # Quick test
 
@@ -56,7 +56,7 @@ docker run --rm \
   --project test_rice655-ref \
   --out_dir test_rice655-ref_out \
   -work-dir work \
-  -resume
+  -resume test_cache
 ```
 
 # Usage
@@ -75,19 +75,19 @@ docker run --rm \
   --project rice655_task \
   --out_dir /data/results/rice655_task \
   -work-dir /data/work \
-  -resume
+  -resume rice655_cache
 ```
 
-`-resume` is Nextflow's native option. With no value it resumes the most recent compatible execution. A run name or session ID can also be given, for example `-resume last`, `-resume determined_borg`, or `-resume 4dc3bb0e-...`.
+- `--fq_dir_glob` is the paired FASTQ glob, for example `/data/reads/*.read{1,2}.fastq.gz`.
+- `--index_dir` is the Giraffe graph. It must contain `Nip_42_rice.gbz`, `Nip_42_rice.hapl`, `Nip.chrnum.sorted.fa`, exactly one `*.graph_prefix.txt`, and exactly one `*.ref_order.txt`.
+- `--panel_dir` is the genotyping panel, such as `cohort_panel_index/rice655_index`. It must contain exactly one `*.ref_panel.vcf.gz`, the SNP and INDEL site files (`*.snp.sites.vcf`, `*.indel.sites.vcf`), and `*.delly.sv.sites.bcf`.
+- `--project` is the project name written into the output.
+- `--out_dir` is the directory for the final files.
+- `-work-dir` is the Nextflow work directory.
+- `-resume` resumes a previous Nextflow run. Give it the same cache name, such as `-resume rice655_cache`, to reuse that run. A run name or session ID also works, for example `-resume last` or `-resume 4dc3bb0e-...`. This is also how an interrupted run is continued.
 
-`--index_dir` is the Giraffe graph. It must contain `Nip_42_rice.gbz`, `Nip_42_rice.hapl`, `Nip.chrnum.sorted.fa`, exactly one `*.graph_prefix.txt`, and exactly one `*.ref_order.txt`. `--panel_dir` is the genotyping panel, such as `cohort_panel_index/rice655_index`. It must contain exactly one `*.ref_panel.vcf.gz`, plus the site files for the variant types to call: `*.snp.sites.vcf`, `*.indel.sites.vcf`, and at most one SV sites file (`*.sv.sites.bcf`, `*.delly.sv.sites.bcf`, or the matching VCF name). When `--panel_dir` is omitted, those panel files are read from `--index_dir`. Keep `--index_dir` on the same path so a finished Giraffe mapping can be reused.
-
-Switch `--panel_dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index` to genotype the other released panels against the same graph index.
+For the same reads, change only `--panel_dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index`, and pass `-resume` with the same mapping cache. The workflow then genotypes that panel directly and does not map the reads again.
 
 ## Build a genotyping panel
 
-A genotyping panel is the directory passed to `--panel_dir`. It holds the SNP, INDEL, and SV sites VarsGT calls, the marker intervals, and the Beagle reference VCF used to impute the final genotypes. The Giraffe graph and the Nipponbare FASTA stay in `--index_dir` and are not rebuilt with the panel.
-
 Rice655, Rice3305, and Rice1171 panels are already in `cohort_panel_index/`. To build a panel from your own final marker VCFs, follow [Build a VarsGT genotyping marker panel](docs/make_ref.md).
-
-Users who already have a whole-genome VCF can project it onto a released panel with [`vcf_filter_impute.nf`](README.VCF_FILTER_IMPUTE.md).
