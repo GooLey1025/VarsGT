@@ -73,7 +73,7 @@ params.vg_path = null
 params.bgzip_path = null
 params.kmc_path = null
 // Required software paths (JAR files)
-params.gatk_path = "/data4/qiujie/biosoftwares/GATK_tools/v4.6.2/gatk-package-4.6.2.0-local.jar"
+params.gatk_path = baseDir.resolve("softwares/gatk-package-4.6.2.0-local.jar").toString()
 params.picard_path = baseDir.resolve("softwares/picard.jar").toString()
 params.beagle_path = baseDir.resolve("softwares/beagle.27Feb25.75f.jar").toString()
 

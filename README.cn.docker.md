@@ -8,6 +8,13 @@
 
 # 安装
 
+先克隆仓库并进入目录。后面的命令都在这个目录中执行。
+
+```sh
+git clone https://github.com/GooLey1025/VarsGT.git
+cd VarsGT
+```
+
 ## Docker 镜像
 
 使用腾讯云容器镜像：
@@ -23,7 +30,7 @@ docker pull ccr.ccs.tencentyun.com/goley04/varsgt:latest
 索引基于 42 个水稻基因组构建，大小约 1.5 GB。下载到即将挂载进容器的目录。
 
 ```sh
-wget https://zenodo.org/records/2322/files/Nip-42rice_GraphPangenome_Index.zip?download=1 -O Nip-42rice_GraphPangenome_Index.zip
+wget 'https://china.scidb.cn/download?fileId=e3541347a9366070ef87d9cdf990f4f5&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O Nip-42rice_GraphPangenome_Index.zip
 unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 ```
 
@@ -44,7 +51,7 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 先完成上面的索引下载，再在 VarsGT 目录中运行。测试读取 `test_fq/` 中的 FASTQ，结果写入 `test_rice655-ref_out`。该命令对 Rice655 面板分型，大约需要 15 分钟。
 
 ```sh
-wget https://zenodo.org/records/2322/files/test_fq.zip?download=1 -O test_fq.zip
+wget 'https://china.scidb.cn/download?fileId=7fdf57f33ea5362bfa62dc629101c707&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 docker run --rm \

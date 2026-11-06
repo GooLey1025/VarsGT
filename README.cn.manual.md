@@ -8,6 +8,13 @@
 
 # 安装
 
+先克隆仓库并进入目录。后面的命令都在这个目录中执行。
+
+```sh
+git clone https://github.com/GooLey1025/VarsGT.git
+cd VarsGT
+```
+
 ## 软件
 
 安装 Java 17 或更新版本，并确认：
@@ -36,7 +43,7 @@ GATK 4.6.2 的 jar 体积很大，没有放进本仓库，需要单独下载：
 
 ```sh
 mkdir -p software
-wget  -O software/gatk-package-4.6.2.0-local.jar
+wget 'https://china.scidb.cn/download?fileId=643071063f1eeca089246054656483b6&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O software/gatk-package-4.6.2.0-local.jar
 ```
 
 运行 `./varsgt` 时用 `--gatk-path software/gatk-package-4.6.2.0-local.jar` 指向该文件。
@@ -46,7 +53,7 @@ wget  -O software/gatk-package-4.6.2.0-local.jar
 索引基于 42 个水稻基因组构建，大小约 1.5 GB。
 
 ```sh
-wget https://zenodo.org/records/2322/files/Nip-42rice_GraphPangenome_Index.zip?download=1 -O Nip-42rice_GraphPangenome_Index.zip
+wget 'https://china.scidb.cn/download?fileId=e3541347a9366070ef87d9cdf990f4f5&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O Nip-42rice_GraphPangenome_Index.zip
 unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 ```
 
@@ -67,7 +74,7 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 在本目录运行 `./varsgt`。测试读取 `test_fq/` 中的 FASTQ，结果写入 `test_rice655-ref_out`。该命令对 Rice655 面板分型，大约需要 15 分钟。
 
 ```sh
-wget https://zenodo.org/records/2322/files/test_fq.zip?download=1 -O test_fq.zip
+wget 'https://china.scidb.cn/download?fileId=7fdf57f33ea5362bfa62dc629101c707&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 ./varsgt \

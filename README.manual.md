@@ -8,6 +8,13 @@
 
 # Installation
 
+Clone the repository and enter it. The commands below are run from this directory.
+
+```sh
+git clone https://github.com/GooLey1025/VarsGT.git
+cd VarsGT
+```
+
 ## Software
 
 Install Java 17 or newer and check it:
@@ -36,7 +43,7 @@ Download the GATK 4.6.2 jar. It is large and is not included in this repository:
 
 ```sh
 mkdir -p software
-wget  -O software/gatk-package-4.6.2.0-local.jar
+wget 'https://zenodo.org/records/23942908/files/gatk-package-4.6.2.0-local.jar?download=1' -O software/gatk-package-4.6.2.0-local.jar
 ```
 
 Pass that jar to `./varsgt` with `--gatk-path software/gatk-package-4.6.2.0-local.jar`.
@@ -46,7 +53,7 @@ Pass that jar to `./varsgt` with `--gatk-path software/gatk-package-4.6.2.0-loca
 The graph index was built from 42 rice genomes and is about 1.5 GB.
 
 ```sh
-wget https://zenodo.org/records/23924551/files/Nip-42rice_GraphPangenome_Index.zip?download=1 -O Nip-42rice_GraphPangenome_Index.zip
+wget 'https://zenodo.org/records/23942908/files/Nip-42rice_GraphPangenome_Index.zip?download=1' -O Nip-42rice_GraphPangenome_Index.zip
 unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 ```
 
@@ -67,7 +74,7 @@ Traits that the released [Aquila genomic selection models](https://github.com/Go
 Run `./varsgt` from this directory. The test reads FASTQ files from `test_fq/` and writes results to `test_rice655-ref_out`. It genotypes the Rice655 panel and takes about 15 minutes.
 
 ```sh
-wget https://zenodo.org/records/23924551/files/test_fq.zip?download=1 -O test_fq.zip
+wget 'https://zenodo.org/records/23942908/files/test_fq.zip?download=1' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 ./varsgt \

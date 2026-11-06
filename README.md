@@ -8,6 +8,13 @@
 
 # Installation
 
+Clone the repository and enter it. The commands below are run from this directory.
+
+```sh
+git clone https://github.com/GooLey1025/VarsGT.git
+cd VarsGT
+```
+
 ## Docker image
 
 ```bash
@@ -19,7 +26,7 @@ docker pull goley04/varsgt:latest
 The graph index was built from 42 rice genomes and is about 1.5 GB. Download it into the directory you will mount into the container.
 
 ```sh
-wget https://zenodo.org/records/23924551/files/Nip-42rice_GraphPangenome_Index.zip?download=1 -O Nip-42rice_GraphPangenome_Index.zip
+wget 'https://zenodo.org/records/23942908/files/Nip-42rice_GraphPangenome_Index.zip?download=1' -O Nip-42rice_GraphPangenome_Index.zip
 unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 ```
 
@@ -40,7 +47,7 @@ Traits that the released [Aquila genomic selection models](https://github.com/Go
 Run this from the VarsGT directory after the index download above. The test reads FASTQ files from `test_fq/` and writes results to `test_rice655-ref_out`. It genotypes the Rice655 panel and takes about 15 minutes.
 
 ```sh
-wget https://zenodo.org/records/23924551/files/test_fq.zip?download=1 -O test_fq.zip
+wget 'https://zenodo.org/records/23942908/files/test_fq.zip?download=1' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 docker run --rm \
@@ -85,6 +92,23 @@ docker run --rm \
 - `-resume` resumes a previous Nextflow run. Give it the same cache name, such as `-resume rice655_cache`, to reuse that run. A run name or session ID also works, for example `-resume last` or `-resume 4dc3bb0e-...`. This is also how an interrupted run is continued.
 
 For the same reads, change only `--panel_dir` to `cohort_panel_index/rice3305_index` or `cohort_panel_index/rice1171_index`, and pass `-resume` with the same mapping cache. The workflow then genotypes that panel directly and does not map the reads again.
+
+## Server resources
+
+The defaults below match a large server. Pass the same flags on the `docker run` command to fit a smaller or larger machine. Lower the CPU, memory, and parallel-task values when the server has less capacity. Raise them when more CPUs and memory are free. Quote memory values that contain a space, for example `--kmc_memory_per_task "16 GB"`.
+
+- `--kmc_max_parallel_number` is the maximum number of KMC tasks at once. Default: `10`.
+- `--kmc_cpus_per_task` is the number of CPUs for each KMC task. Default: `14`.
+- `--kmc_memory_per_task` is the memory for each KMC task. Default: `28 GB`.
+- `--bam_per_task_threads` is the number of CPUs for each BAM task. Default: `4`.
+- `--bam_per_task_memory` is the memory for each BAM task. Default: `8 GB`.
+- `--bam_max_parallel_num` is the maximum number of BAM tasks at once. Default: `4`.
+- `--mark_duplicates` marks duplicate reads in the BAM. Default: `true`.
+- `--giraffe_mapping_cpus_per_task` is the number of CPUs for each Giraffe mapping task. Default: `20`.
+- `--giraffe_mapping_memory_per_task` is the memory for each Giraffe mapping task. Default: `30 GB`.
+- `--giraffe_mapping_parallel_number` is the maximum number of Giraffe mapping tasks at once. Default: `4`.
+- `--beagle_cpus` is the number of CPUs for Beagle imputation. Default: `32`.
+- `--beagle_memory` is the memory for Beagle imputation. Default: `100 GB`.
 
 ## Build a genotyping panel
 
