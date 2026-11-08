@@ -8,11 +8,11 @@
 
 # 安装
 
-先克隆仓库并进入目录。后面的命令都在这个目录中执行。
+新建一个工作目录，后面的命令都在这个目录中执行。
 
 ```sh
-git clone https://github.com/GooLey1025/VarsGT.git
-cd VarsGT
+mkdir -p varsgt-work
+cd varsgt-work
 ```
 
 ## Docker 镜像
@@ -36,7 +36,7 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 
 ## 水稻群体标记面板
 
-仓库提供三个群体面板，按待测材料选择。文件位于 `cohort_panel_index/`。
+仓库提供三个群体面板，按待测材料选择。面板在镜像内的 `/opt/varsgt/cohort_panel_index/`。
 
 **Rice655。** 自交系面板。标记集为 MSMP（Multi-Source Marker Panel），包含性状关联主效变异、全基因组主效变异、GWAS 主效变异和 RiceNavi QTN 变异。支持 QTN 育种推荐，适用于纯合自交材料。
 
@@ -48,7 +48,7 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 
 # 快速测试
 
-先完成上面的索引下载，再在 VarsGT 目录中运行。测试读取 `test_fq/` 中的 FASTQ，结果写入 `test_rice655-ref_out`。该命令对 Rice655 面板分型，大约需要 15 分钟。
+先完成上面的索引下载，再在这个工作目录中运行。测试读取 `test_fq/` 中的 FASTQ，结果写入 `test_rice655-ref_out`。该命令对 Rice655 面板分型，大约需要 15 分钟。
 
 ```sh
 wget 'https://china.scidb.cn/download?fileId=7fdf57f33ea5362bfa62dc629101c707&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O test_fq.zip
@@ -61,7 +61,7 @@ docker run --rm \
   run /opt/varsgt/main.nf \
   --fq_dir_glob "test_fq/*.reads{1,2}.fastq.gz" \
   --index_dir Nip-42rice_GraphPangenome_Index \
-  --panel_dir cohort_panel_index/rice655_index \
+  --panel_dir /opt/varsgt/cohort_panel_index/rice655_index \
   --project test_rice655-ref \
   --out_dir test_rice655-ref_out \
   -work-dir work \
@@ -80,7 +80,7 @@ docker run --rm \
   run /opt/varsgt/main.nf \
   --fq_dir_glob "/data/reads/*.read{1,2}.fastq.gz" \
   --index_dir /data/Nip-42rice_GraphPangenome_Index \
-  --panel_dir /data/cohort_panel_index/rice655_index \
+  --panel_dir /opt/varsgt/cohort_panel_index/rice655_index \
   --project rice655_task \
   --out_dir /data/results/rice655_task \
   -work-dir /data/work \
@@ -89,14 +89,14 @@ docker run --rm \
 
 - `--fq_dir_glob` 是双端 FASTQ 的匹配模式，例如 `/data/reads/*.read{1,2}.fastq.gz`。
 - `--index_dir` 是 Giraffe 图索引，必须包含 `Nip_42_rice.gbz`、`Nip_42_rice.hapl`、`Nip.chrnum.sorted.fa`，以及恰好一个 `*.graph_prefix.txt` 和一个 `*.ref_order.txt`。
-- `--panel_dir` 是分型面板，例如 `cohort_panel_index/rice655_index`。其中必须有恰好一个 `*.ref_panel.vcf.gz`、SNP 和 INDEL 位点文件（`*.snp.sites.vcf`、`*.indel.sites.vcf`），以及 `*.delly.sv.sites.bcf`。
+- `--panel_dir` 是分型面板。镜像里带有 `/opt/varsgt/cohort_panel_index/rice655_index`。其中必须有恰好一个 `*.ref_panel.vcf.gz`、SNP 和 INDEL 位点文件（`*.snp.sites.vcf`、`*.indel.sites.vcf`），以及 `*.delly.sv.sites.bcf`。
 - `--project` 是写入结果的项目名。
 - `--out_dir` 是最终文件的输出目录。
 - `-work-dir` 是 Nextflow 的工作目录。
 - `-resume` 用于恢复上一次 Nextflow 运行。传入同一个缓存名即可复用该次运行，也可以传入运行名或 session ID，例如 `-resume last` 或 `-resume 4dc3bb0e-...`。中断的运行也用它继续。
 
-同一套 reads 只需更换 `--panel_dir`，例如换成 `cohort_panel_index/rice3305_index` 或 `cohort_panel_index/rice1171_index`，并用 `-resume` 指向同一个 mapping cache。流程会直接在对应面板上分型，不再重复比对 reads。
+同一套 reads 只需更换 `--panel_dir`，例如换成 `/opt/varsgt/cohort_panel_index/rice3305_index` 或 `/opt/varsgt/cohort_panel_index/rice1171_index`，并用 `-resume` 指向同一个 mapping cache。流程会直接在对应面板上分型，不再重复比对 reads。
 
 ## 构建分型面板
 
-Rice655、Rice3305 和 Rice1171 面板已经放在 `cohort_panel_index/`。若要从自己的最终标记 VCF 构建面板，见[构建 VarsGT 分型标记面板](docs/make_ref.md)。
+Rice655、Rice3305 和 Rice1171 面板已经放在镜像的 `/opt/varsgt/cohort_panel_index/`。若要从自己的最终标记 VCF 构建面板，见[构建 VarsGT 分型标记面板](docs/make_ref.md)。

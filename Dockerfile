@@ -1,12 +1,12 @@
 FROM ubuntu:22.04
 
 ARG NEXTFLOW_VERSION=25.04.6
-ARG VG_VERSION=1.69.0
+ARG VG_VERSION=1.71.0
 ARG KMC_VERSION=3.2.4
 ARG BCFTOOLS_VERSION=1.22
 ARG SAMTOOLS_VERSION=1.22.1
 ARG HTSLIB_VERSION=1.22.1
-ARG GATK_URL=https://ndownloader.figshare.com/files/64029175
+ARG GATK_URL=https://zenodo.org/records/23942908/files/gatk-package-4.6.2.0-local.jar?download=1
 ARG PICARD_URL=https://ndownloader.figshare.com/files/64029172
 ARG BEAGLE_URL=https://ndownloader.figshare.com/files/64029178
 
@@ -83,15 +83,17 @@ RUN curl -fL \
 WORKDIR /opt/varsgt
 
 RUN mkdir -p softwares \
-    && curl -fL "${GATK_URL}" -o softwares/GenomeAnalysisTK3.7.jar \
+    && curl -fL "${GATK_URL}" -o softwares/gatk-package-4.6.2.0-local.jar \
     && curl -fL "${PICARD_URL}" -o softwares/picard.jar \
     && curl -fL "${BEAGLE_URL}" -o softwares/beagle.27Feb25.75f.jar
 
-COPY main.nf vcf_filter_impute.nf README.md varsgt ./
+COPY main.nf varsgt LICENSE VarsGT-logo.svg ./
+COPY README.md README.manual.md README.cn.docker.md README.cn.manual.md ./
 COPY modules ./modules
 COPY scripts ./scripts
 COPY docs ./docs
-COPY 705rice.template.params.yaml 1171rice.template.params.yaml test.params.yaml ./
+COPY cohort_panel_index ./cohort_panel_index
+COPY nextflow-25.04.6-one.jar /opt/nextflow/framework/25.04.6/nextflow-25.04.6-one.jar
 
 RUN chmod 0755 scripts/*.sh varsgt \
     && java17 -version \
