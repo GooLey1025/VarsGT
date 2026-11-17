@@ -74,7 +74,7 @@ Traits that the released [Aquila genomic selection models](https://github.com/Go
 Run `./varsgt` from this directory. The test reads FASTQ files from `test_fq/` and writes results to `test_rice655-ref_out`. It genotypes the Rice655 panel and takes about 15 minutes.
 
 ```sh
-wget 'https://zenodo.org/records/23942908/files/test_fq.zip?download=1' -O test_fq.zip
+wget 'https://zenodo.org/records/24048207/files/test_fq.zip?download=1' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 ./varsgt \

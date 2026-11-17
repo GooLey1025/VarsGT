@@ -32,6 +32,19 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 
 ## Rice cohort marker panels
 
+This section is a simplified account of how the released panels were prepared. Building a panel involves many steps and details, including a cohort GWAS and a separate GWAS within each cross-validation fold, and those steps cannot be explained in full here. The concrete workflow is released in [Multi-Source Marker Panel generation](https://github.com/GooLey1025/Multi_Source_Marker_Panel_generation). We recommend that you prepare the marker panel for your own population from your own understanding of that population. The aim is the marker panel and the intervals for that population. The notes below only describe the ideas behind the panels we prepared. A more concise description is in the Methods section of the paper.
+
+For the panels we released, sites are drawn from several sources and then written out as one marker panel plus the intervals used to genotype it:
+
+- **Target-cohort GWAS and genome-wide LD.** The workflow re-runs GWAS on the target cohort, including a separate GWAS within each cross-validation fold, and keeps those association leads together with a genome-wide LD marker set.
+- **RiceNavi QTN.** Previously reported quantitative trait nucleotides, kept so the panel can support QTN breeding recommendations.
+- **Other-cohort GWAS leads.** These site files are assumed to be already extracted. If you do not have them, obtain them before you use this workflow. The panels we released use leads from seven cohorts (404rice, 1439rice, 176rice, 378rice, 3023rice, 532rice, and 1171rice). The first six contribute SNPs. 1171rice also contributes INDELs and SVs. Sites that cannot be genotyped safely on the target cohort, including sites missing from the source VCF, sites that are not biallelic, and sites with `ALT=*`, are left out.
+- **Public GWAS, in two branches.** Each entry supplies genomic intervals, and an alleles file is optional. When alleles are absent, REF and ALT are discovered inside those intervals. Lead variants enter the marker set directly. Signal variants are genotyped on the target reads, restricted to biallelic sites, filtered by minor-allele frequency and call rate, imputed, and LD-pruned. Only the pruned signal sites are kept.
+- **SV re-genotyping.** SV sites are taken from whole-genome Delly VCFs, merged, and called again on each target BAM. The panel therefore carries SV genotypes from the target reads.
+- **One site, one source.** When several sources nominate the same site, the panel keeps a single source in this order: RiceNavi QTN, current-cohort GWAS LD, public GWAS lead, public GWAS signal after LD pruning, other-cohort GWAS LD, then genome-wide LD. Audit tables still list every source and every trait.
+
+A production run builds one panel for the full cohort. The cross-validation run builds one panel per training fold, with GWAS fit only on the training samples of that fold. SNP, INDEL, and SV sites are genotyped on the target sequencing data and imputed to produce the final panel.
+
 Three cohort panels are provided. Choose the panel that matches the material you are genotyping. The panel files are in the image at `/opt/varsgt/cohort_panel_index/`.
 
 - **Rice655.** Inbred panel. The marker set is an MSMP (Multi-Source Marker Panel): trait-associated lead variants, genome-wide lead variants, GWAS lead variants, and RiceNavi QTN variants. It supports QTN breeding recommendations and is intended for homozygous inbred materials.
@@ -47,7 +60,7 @@ Traits that the released [Aquila genomic selection models](https://github.com/Go
 Run this from that working directory after the index download above. The test reads FASTQ files from `test_fq/` and writes results to `test_rice655-ref_out`. It genotypes the Rice655 panel and takes about 15 minutes.
 
 ```sh
-wget 'https://zenodo.org/records/23942908/files/test_fq.zip?download=1' -O test_fq.zip
+wget 'https://zenodo.org/records/24048207/files/test_fq.zip?download=1' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 docker run --rm \

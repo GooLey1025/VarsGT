@@ -74,7 +74,7 @@ unzip Nip-42rice_GraphPangenome_Index.zip -d Nip-42rice_GraphPangenome_Index
 在本目录运行 `./varsgt`。测试读取 `test_fq/` 中的 FASTQ，结果写入 `test_rice655-ref_out`。该命令对 Rice655 面板分型，大约需要 15 分钟。
 
 ```sh
-wget 'https://china.scidb.cn/download?fileId=7fdf57f33ea5362bfa62dc629101c707&traceId=8fb3bd60-cf61-41b6-9307-491ba96e66b7' -O test_fq.zip
+wget 'https://china.scidb.cn/download?fileId=0c01e3ccda685dbd203a98da322c688e' -O test_fq.zip
 unzip test_fq.zip -d test_fq
 
 ./varsgt \
